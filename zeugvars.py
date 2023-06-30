@@ -47,6 +47,9 @@ def zeugvar(
             else:
                 return repr(obj)
 
+        def __getattr__(self, item):
+            return getattr(fetch(), item)
+
     return cast(_T, _ZeugVarMeta(
         typ.__name__, (),
         {attr.name: zeugvarize(attr, fetch) for attr in class_attrs}
