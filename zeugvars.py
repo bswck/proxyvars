@@ -4,8 +4,6 @@ from contextvars import ContextVar
 from typing import TypeVar, Any, cast
 
 _T = TypeVar("_T")
-_O = TypeVar("_O")
-_CV: str = "_ZeugVar__cv"
 
 
 def zeugvarize(
