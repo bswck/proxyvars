@@ -31,11 +31,11 @@ in the provided manager, which could be any object that implements the
 Description
 -----------
 The `zeugvar` function takes a `Manager` object and class (optional) as arguments.
-The `Manager` object must have `get` and `set` methods.  The `get` method returns
-the object to which the proxy forwards attribute access.  The `set` method sets
-the object to which the proxy forwards attribute access.  `set` is called when
-the proxy is being inplace modified.  The class is optional unless the `Manager`
-is bound, i.e. `Manager.get` returns an instance of a class.
+The `Manager` object must have `get` and `set` methods. The `get` method returns
+the object to which the proxy forwards attribute access. The `set` method sets
+the object to which the proxy forwards attribute access. `set` is called when
+the proxy is being inplace modified. The class parameter is optional,
+but it is strongly recommended for some corner-cases.
 The user might provide custom `getter` and `setter` functions.
 This might be useful when there is the need to keep track of the tokens
 returned by `ContextVar.set()`, if using `ContextVar` as the manager.
