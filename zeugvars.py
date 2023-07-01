@@ -1,4 +1,5 @@
 import contextlib
+import functools
 from collections.abc import Callable
 from contextvars import ContextVar
 from typing import TypeVar, Any, cast
@@ -35,7 +36,7 @@ def zeugvar_descriptor(
                 with contextlib.suppress(RuntimeError):
                     return getattr(fetch(), self.attr_name)
 
-                def attribute() -> str:
+                def attribute() -> str:  # type: ignore[misc]
                     return f"<unbound {cls.__name__!r} object>"
 
             else:
@@ -44,8 +45,8 @@ def zeugvar_descriptor(
                 except RuntimeError:
                     if self.attr_name == "__dir__" and not custom_mro:
 
-                        def attribute():
-                            return set(dir(cls)) - {"mro"}
+                        def attribute() -> list[str]:  # type: ignore[misc]
+                            return list(set(dir(cls)) - {"mro"})
 
                     elif callable(undefined):
                         attribute = undefined
@@ -59,11 +60,10 @@ def zeugvar_descriptor(
                         if not callable(fallback):
                             raise
 
-                        def attribute(*args: Any, **kwargs: Any) -> Any:
-                            return fallback(obj, *args, **kwargs)
+                        attribute = functools.partial(fallback, obj)
 
             if inplace:
-                def _apply_inplace(*args, **kwargs):
+                def _apply_inplace(*args: Any, **kwargs: Any) -> _T:
                     ret = attribute(*args, **kwargs)
                     cv.set(ret)
                     return instance
@@ -98,7 +98,7 @@ def zeugvar(
     if cls is None:
         cls = type(fetch())
 
-    mro = object.__getattribute__(cls, "mro")
+    mro: Callable[[], tuple[type[Any], ...]] = object.__getattribute__(cls, "mro")
     custom_mro = not hasattr(mro, "__self__")
 
     class _ZeugVarMeta(type):
@@ -199,7 +199,7 @@ def zeugvar(
     zv = cast(_T, _ZeugVarMeta(cls.__name__, (), {}))
     if not custom_mro:
 
-        def _mro_wrapper():
+        def _mro_wrapper() -> tuple[type[Any], ...]:
             try:
                 fetch()
             except RuntimeError:
