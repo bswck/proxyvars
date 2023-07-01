@@ -63,10 +63,12 @@ The following example shows how to use `zeugvar` with `contextvars.ContextVar`:
 1000
 """
 
-import contextlib
-import functools
+from contextlib import suppress
+from functools import partial
 from collections.abc import Callable
 from typing import TypeVar, Any, cast, Protocol, runtime_checkable
+
+__all__ = ("zeugvar",)
 
 _T = TypeVar("_T")
 
@@ -81,7 +83,7 @@ class Manager(Protocol[_T]):
 
 
 def zeugvar_descriptor(
-    cls: type[_T],
+    cls: type[_T] | None,
     mgr: Manager[_T],
     getter: Callable[[Manager[_T]], _T],
     setter: Callable[[Manager[_T], _T], None],
@@ -109,10 +111,12 @@ def zeugvar_descriptor(
                     return getattr(getter(mgr), name)
 
             elif self.attr_name in ("__repr__", "__str__"):
-                with contextlib.suppress(RuntimeError):
+                with suppress(RuntimeError):
                     return getattr(getter(mgr), self.attr_name)
 
                 def attribute() -> str:  # type: ignore[misc]
+                    if cls is None:
+                        return "<unbound zeugvar>"
                     return f"<unbound {cls.__name__!r} object>"
 
             else:
@@ -136,7 +140,7 @@ def zeugvar_descriptor(
                         if not callable(fallback):
                             raise
 
-                        attribute = functools.partial(fallback, obj)
+                        attribute = partial(fallback, obj)
 
             if inplace:
                 def _apply_inplace(*args: Any, **kwargs: Any) -> _T:
@@ -174,7 +178,7 @@ def _cv_setter(mgr: Manager[_T], value: _T) -> None:
 
 def zeugvar(
     mgr: Manager[_T],
-    cls: type[_T] = None,  # type: ignore[assignment]
+    cls: type[_T] | None = None,
     getter: Callable[[Manager[_T]], _T] = None,  # type: ignore[assignment]
     setter: Callable[[Manager[_T], _T], None] = None,  # type: ignore[assignment]
 ) -> _T:
@@ -187,11 +191,16 @@ def zeugvar(
         setter = _cv_setter
 
     if cls is None:
-        cls = type(getter(mgr))
+        with suppress(RuntimeError):
+            cls = type(getter(mgr))
 
-    mro: Callable[[], tuple[type[Any], ...]] = object.__getattribute__(cls, "mro")
-    custom_mro = not hasattr(mro, "__self__")
-    descriptor = functools.partial(
+    if cls is None:
+        custom_mro = False
+    else:
+        mro: Callable[[], tuple[type[Any], ...]] = object.__getattribute__(cls, "mro")
+        custom_mro = not hasattr(mro, "__self__")
+
+    descriptor = partial(
         zeugvar_descriptor, cls, mgr, getter, setter, custom_mro=custom_mro
     )
 
@@ -213,8 +222,12 @@ def zeugvar(
         __getattr__ = descriptor()
         __setattr__ = descriptor()
         __delattr__ = descriptor()
-        __dir__ = descriptor(undefined=lambda: dir(cls))
-        __class__ = descriptor(undefined=lambda: cls)
+        if cls is None:
+            __dir__ = descriptor()
+            __class__ = descriptor()
+        else:
+            __dir__ = descriptor(undefined=lambda: dir(cls))
+            __class__ = descriptor(undefined=lambda: cls)
         __instancecheck__ = descriptor()
         __subclasscheck__ = descriptor()
         __call__ = descriptor()
@@ -290,17 +303,19 @@ def zeugvar(
         __copy__ = descriptor()
         __deepcopy__ = descriptor()
 
-    zv = cast(_T, _ZeugVarMeta(cls.__name__, (), {}))
+    cls_name = cls.__name__ if cls is not None else f"zeugvar_{id(mgr):x}"
+
+    zv = cast(_T, _ZeugVarMeta(cls_name, (), {}))
     if not custom_mro:
 
         def _mro_wrapper() -> tuple[type[Any], ...]:
             try:
-                getter(mgr)
+                obj = getter(mgr)
             except RuntimeError:
                 return mro()
             else:
                 raise AttributeError(
-                    f"{cls.__name__!r} object has no attribute 'mro'"
+                    f"{type(obj).__name__!r} object has no attribute 'mro'"
                 ) from None
 
         type.__setattr__(zv, "mro", _mro_wrapper)
