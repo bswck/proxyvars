@@ -2,7 +2,7 @@
 
 A simple & straight-forward Python module for creating context-dependent proxy objects.
 
-## Short Description
+## What is this?
 
 _ZeugVars_ is a Python module for creating context-dependent proxy objects.
 

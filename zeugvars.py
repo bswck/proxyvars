@@ -5,8 +5,8 @@ A simple & straight-forward Python module for creating context-dependent proxy o
 
 (C) bswck, 2023
 
-Short Description
------------------
+What is this?
+-------------
 `zeugvars` is a Python module for creating context-dependent proxy objects.
 
 By 'proxy' we mean any object that forwards attribute access to another
