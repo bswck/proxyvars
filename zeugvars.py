@@ -28,8 +28,8 @@ creates a proxy object that forwards attribute access to an object stored
 in the provided manager, which could be any object that implements the
 `Manager` protocol; for example, a `contextvars.ContextVar` object.
 
-Usage
------
+Description
+-----------
 The `zeugvar` function takes a `Manager` object and class (optional) as arguments.
 The `Manager` object must have `get` and `set` methods.  The `get` method returns
 the object to which the proxy forwards attribute access.  The `set` method sets
