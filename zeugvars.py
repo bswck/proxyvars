@@ -14,7 +14,7 @@ def zeugvar_descriptor(
     undefined: Callable[..., Any] | None = None,
     fallback: Callable[..., Any] | None = None,
     custom_mro: bool = False,
-    mutator: bool = False,
+    inplace: bool = False,
 ) -> Any:
     class _ZeugVarDescriptor:
         attr_name: str
@@ -64,13 +64,13 @@ def zeugvar_descriptor(
                         def attribute(*args: Any, **kwargs: Any) -> Any:
                             return fallback(obj, *args, **kwargs)
 
-            if mutator:
-                def _cv_mutator(*args, **kwargs):
+            if inplace:
+                def _apply_inplace(*args, **kwargs):
                     ret = attribute(*args, **kwargs)
                     cv.set(ret)
                     return instance
 
-                return _cv_mutator
+                return _apply_inplace
             return attribute
 
         def __set__(self, instance: _T, value: Any) -> None:
@@ -163,19 +163,19 @@ def zeugvar(
         __rand__ = zeugvar_descriptor(cls, fetch, cv)
         __rxor__ = zeugvar_descriptor(cls, fetch, cv)
         __ror__ = zeugvar_descriptor(cls, fetch, cv)
-        __iadd__ = zeugvar_descriptor(cls, fetch, cv, fallback=_op_fallback("__add__"), mutator=True)
-        __isub__ = zeugvar_descriptor(cls, fetch, cv, fallback=_op_fallback("__sub__"), mutator=True)
-        __imul__ = zeugvar_descriptor(cls, fetch, cv, fallback=_op_fallback("__mul__"), mutator=True)
-        __imatmul__ = zeugvar_descriptor(cls, fetch, cv, fallback=_op_fallback("__matmul__"), mutator=True)
-        __itruediv__ = zeugvar_descriptor(cls, fetch, cv, fallback=_op_fallback("__truediv__"), mutator=True)
-        __ifloordiv__ = zeugvar_descriptor(cls, fetch, cv, fallback=_op_fallback("__floordiv__"), mutator=True)
-        __imod__ = zeugvar_descriptor(cls, fetch, cv, fallback=_op_fallback("__mod__"), mutator=True)
-        __ipow__ = zeugvar_descriptor(cls, fetch, cv, fallback=_op_fallback("__pow__"), mutator=True)
-        __ilshift__ = zeugvar_descriptor(cls, fetch, cv, fallback=_op_fallback("__lshift_"), mutator=True)
-        __irshift__ = zeugvar_descriptor(cls, fetch, cv, fallback=_op_fallback("__rshift__"), mutator=True)
-        __iand__ = zeugvar_descriptor(cls, fetch, cv, fallback=_op_fallback("__and__"), mutator=True)
-        __ixor__ = zeugvar_descriptor(cls, fetch, cv, fallback=_op_fallback("__xor__"), mutator=True)
-        __ior__ = zeugvar_descriptor(cls, fetch, cv, fallback=_op_fallback("__or__"), mutator=True)
+        __iadd__ = zeugvar_descriptor(cls, fetch, cv, fallback=_op_fallback("__add__"), inplace=True)
+        __isub__ = zeugvar_descriptor(cls, fetch, cv, fallback=_op_fallback("__sub__"), inplace=True)
+        __imul__ = zeugvar_descriptor(cls, fetch, cv, fallback=_op_fallback("__mul__"), inplace=True)
+        __imatmul__ = zeugvar_descriptor(cls, fetch, cv, fallback=_op_fallback("__matmul__"), inplace=True)
+        __itruediv__ = zeugvar_descriptor(cls, fetch, cv, fallback=_op_fallback("__truediv__"), inplace=True)
+        __ifloordiv__ = zeugvar_descriptor(cls, fetch, cv, fallback=_op_fallback("__floordiv__"), inplace=True)
+        __imod__ = zeugvar_descriptor(cls, fetch, cv, fallback=_op_fallback("__mod__"), inplace=True)
+        __ipow__ = zeugvar_descriptor(cls, fetch, cv, fallback=_op_fallback("__pow__"), inplace=True)
+        __ilshift__ = zeugvar_descriptor(cls, fetch, cv, fallback=_op_fallback("__lshift_"), inplace=True)
+        __irshift__ = zeugvar_descriptor(cls, fetch, cv, fallback=_op_fallback("__rshift__"), inplace=True)
+        __iand__ = zeugvar_descriptor(cls, fetch, cv, fallback=_op_fallback("__and__"), inplace=True)
+        __ixor__ = zeugvar_descriptor(cls, fetch, cv, fallback=_op_fallback("__xor__"), inplace=True)
+        __ior__ = zeugvar_descriptor(cls, fetch, cv, fallback=_op_fallback("__or__"), inplace=True)
         __neg__ = zeugvar_descriptor(cls, fetch, cv)
         __pos__ = zeugvar_descriptor(cls, fetch, cv)
         __abs__ = zeugvar_descriptor(cls, fetch, cv)
