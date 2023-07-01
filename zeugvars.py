@@ -9,10 +9,12 @@ _T = TypeVar("_T")
 def zeugvar_descriptor(
     cls: type[_T],
     fetch: Callable[[], _T],
+    cv: ContextVar[_T],
     *,
     undefined: Callable[..., Any] | None = None,
     fallback: Callable[..., Any] | None = None,
-    custom_mro: bool = False
+    custom_mro: bool = False,
+    mutator: bool = False,
 ) -> Any:
     class _ZeugVarDescriptor:
         attr_name: str
@@ -25,26 +27,51 @@ def zeugvar_descriptor(
 
         def __get__(self, instance: _T, owner: type[_T] | None) -> Any:
             if self.attr_name == "__getattr__":
-                return lambda name: getattr(fetch(), name)
-            if self.attr_name in ("__repr__", "__str__"):
+
+                def attribute(name: str) -> Any:
+                    return getattr(fetch(), name)
+
+            elif self.attr_name in ("__repr__", "__str__"):
                 with contextlib.suppress(RuntimeError):
                     return getattr(fetch(), self.attr_name)
-                return lambda: f"<unbound {cls.__name__!r} object>"
-            try:
-                obj = fetch()
-            except RuntimeError:
-                if self.attr_name == "__dir__" and not custom_mro:
-                    return lambda: set(dir(cls)) - {"mro"}
-                if callable(undefined):
-                    return lambda *args, **kwargs: undefined(*args, **kwargs)
-                raise
+
+                def attribute() -> str:
+                    return f"<unbound {cls.__name__!r} object>"
+
             else:
                 try:
-                    return getattr(obj, self.attr_name)
-                except AttributeError:
-                    if callable(fallback):
-                        return lambda *args, **kwargs: fallback(obj, *args, **kwargs)
-                    raise
+                    obj = fetch()
+                except RuntimeError:
+                    if self.attr_name == "__dir__" and not custom_mro:
+
+                        def attribute():
+                            return set(dir(cls)) - {"mro"}
+
+                    elif callable(undefined):
+
+                        def attribute(*args: Any, **kwargs: Any) -> Any:
+                            return undefined(*args, **kwargs)
+
+                    else:
+                        raise
+                else:
+                    try:
+                        attribute = getattr(obj, self.attr_name)
+                    except AttributeError:
+                        if not callable(fallback):
+                            raise
+
+                        def attribute(*args: Any, **kwargs: Any) -> Any:
+                            return fallback(obj, *args, **kwargs)
+
+            if mutator:
+                def _cv_mutator(*args, **kwargs):
+                    ret = attribute(*args, **kwargs)
+                    cv.set(ret)
+                    return instance
+
+                return _cv_mutator
+            return attribute
 
         def __set__(self, instance: _T, value: Any) -> None:
             setattr(fetch(), self.attr_name, value)
@@ -53,6 +80,10 @@ def zeugvar_descriptor(
             delattr(fetch(), self.attr_name)
 
     return _ZeugVarDescriptor()
+
+
+def _op_fallback(op_name: str) -> Callable[[Any, Any], Any]:
+    return lambda obj, op: getattr(obj, op_name)(op)
 
 
 def zeugvar(
@@ -73,109 +104,112 @@ def zeugvar(
     custom_mro = not hasattr(mro, "__self__")
 
     class _ZeugVarMeta(type):
-        __doc__ = zeugvar_descriptor(cls, fetch)
-        __wrapped__ = zeugvar_descriptor(cls, fetch)
-        __repr__ = zeugvar_descriptor(cls, fetch)
-        __str__ = zeugvar_descriptor(cls, fetch)
-        __bytes__ = zeugvar_descriptor(cls, fetch)
-        __format__ = zeugvar_descriptor(cls, fetch)
-        __lt__ = zeugvar_descriptor(cls, fetch)
-        __le__ = zeugvar_descriptor(cls, fetch)
-        __eq__ = zeugvar_descriptor(cls, fetch)
-        __ne__ = zeugvar_descriptor(cls, fetch)
-        __gt__ = zeugvar_descriptor(cls, fetch)
-        __ge__ = zeugvar_descriptor(cls, fetch)
-        __hash__ = zeugvar_descriptor(cls, fetch)
-        __bool__ = zeugvar_descriptor(cls, fetch, undefined=lambda: False)
-        __getattr__ = zeugvar_descriptor(cls, fetch)
-        __setattr__ = zeugvar_descriptor(cls, fetch)
-        __delattr__ = zeugvar_descriptor(cls, fetch)
-        __dir__ = zeugvar_descriptor(cls, fetch, undefined=lambda: dir(cls), custom_mro=custom_mro)
-        __class__ = zeugvar_descriptor(cls, fetch, undefined=lambda: cls)
-        __instancecheck__ = zeugvar_descriptor(cls, fetch)
-        __subclasscheck__ = zeugvar_descriptor(cls, fetch)
-        __call__ = zeugvar_descriptor(cls, fetch)
-        __len__ = zeugvar_descriptor(cls, fetch)
-        __length_hint__ = zeugvar_descriptor(cls, fetch)
-        __getitem__ = zeugvar_descriptor(cls, fetch)
-        __setitem__ = zeugvar_descriptor(cls, fetch)
-        __delitem__ = zeugvar_descriptor(cls, fetch)
-        __iter__ = zeugvar_descriptor(cls, fetch)
-        __next__ = zeugvar_descriptor(cls, fetch)
-        __reversed__ = zeugvar_descriptor(cls, fetch)
-        __contains__ = zeugvar_descriptor(cls, fetch)
-        __add__ = zeugvar_descriptor(cls, fetch)
-        __sub__ = zeugvar_descriptor(cls, fetch)
-        __mul__ = zeugvar_descriptor(cls, fetch)
-        __matmul__ = zeugvar_descriptor(cls, fetch)
-        __truediv__ = zeugvar_descriptor(cls, fetch)
-        __floordiv__ = zeugvar_descriptor(cls, fetch)
-        __mod__ = zeugvar_descriptor(cls, fetch)
-        __divmod__ = zeugvar_descriptor(cls, fetch)
-        __pow__ = zeugvar_descriptor(cls, fetch)
-        __lshift__ = zeugvar_descriptor(cls, fetch)
-        __rshift__ = zeugvar_descriptor(cls, fetch)
-        __and__ = zeugvar_descriptor(cls, fetch)
-        __xor__ = zeugvar_descriptor(cls, fetch)
-        __or__ = zeugvar_descriptor(cls, fetch)
-        __radd__ = zeugvar_descriptor(cls, fetch)
-        __rsub__ = zeugvar_descriptor(cls, fetch)
-        __rmul__ = zeugvar_descriptor(cls, fetch)
-        __rmatmul__ = zeugvar_descriptor(cls, fetch)
-        __rtruediv__ = zeugvar_descriptor(cls, fetch)
-        __rfloordiv__ = zeugvar_descriptor(cls, fetch)
-        __rmod__ = zeugvar_descriptor(cls, fetch)
-        __rdivmod__ = zeugvar_descriptor(cls, fetch)
-        __rpow__ = zeugvar_descriptor(cls, fetch)
-        __rlshift__ = zeugvar_descriptor(cls, fetch)
-        __rrshift__ = zeugvar_descriptor(cls, fetch)
-        __rand__ = zeugvar_descriptor(cls, fetch)
-        __rxor__ = zeugvar_descriptor(cls, fetch)
-        __ror__ = zeugvar_descriptor(cls, fetch)
-        __iadd__ = zeugvar_descriptor(cls, fetch, fallback=lambda obj, op: getattr(obj, "__add__")(op))
-        __isub__ = zeugvar_descriptor(cls, fetch, fallback=lambda obj, op: getattr(obj, "__sub__")(op))
-        __imul__ = zeugvar_descriptor(cls, fetch, fallback=lambda obj, op: getattr(obj, "__mul__")(op))
-        __imatmul__ = zeugvar_descriptor(cls, fetch, fallback=lambda obj, op: getattr(obj, "__matmul__")(op))
-        __itruediv__ = zeugvar_descriptor(cls, fetch, fallback=lambda obj, op: getattr(obj, "__truediv__")(op))
-        __ifloordiv__ = zeugvar_descriptor(cls, fetch, fallback=lambda obj, op: getattr(obj, "__floordiv__")(op))
-        __imod__ = zeugvar_descriptor(cls, fetch, fallback=lambda obj, op: getattr(obj, "__mod__")(op))
-        __ipow__ = zeugvar_descriptor(cls, fetch, fallback=lambda obj, op: getattr(obj, "__pow__")(op))
-        __ilshift__ = zeugvar_descriptor(cls, fetch, fallback=lambda obj, op: getattr(obj, "__lshift_")(op))
-        __irshift__ = zeugvar_descriptor(cls, fetch, fallback=lambda obj, op: getattr(obj, "__rshift__")(op))
-        __iand__ = zeugvar_descriptor(cls, fetch, fallback=lambda obj, op: getattr(obj, "__and__")(op))
-        __ixor__ = zeugvar_descriptor(cls, fetch, fallback=lambda obj, op: getattr(obj, "__xor__")(op))
-        __ior__ = zeugvar_descriptor(cls, fetch, fallback=lambda obj, op: getattr(obj, "__or__")(op))
-        __neg__ = zeugvar_descriptor(cls, fetch)
-        __pos__ = zeugvar_descriptor(cls, fetch)
-        __abs__ = zeugvar_descriptor(cls, fetch)
-        __invert__ = zeugvar_descriptor(cls, fetch)
-        __complex__ = zeugvar_descriptor(cls, fetch)
-        __int__ = zeugvar_descriptor(cls, fetch)
-        __float__ = zeugvar_descriptor(cls, fetch)
-        __index__ = zeugvar_descriptor(cls, fetch)
-        __round__ = zeugvar_descriptor(cls, fetch)
-        __trunc__ = zeugvar_descriptor(cls, fetch)
-        __floor__ = zeugvar_descriptor(cls, fetch)
-        __ceil__ = zeugvar_descriptor(cls, fetch)
-        __enter__ = zeugvar_descriptor(cls, fetch)
-        __exit__ = zeugvar_descriptor(cls, fetch)
-        __await__ = zeugvar_descriptor(cls, fetch)
-        __aiter__ = zeugvar_descriptor(cls, fetch)
-        __anext__ = zeugvar_descriptor(cls, fetch)
-        __aenter__ = zeugvar_descriptor(cls, fetch)
-        __aexit__ = zeugvar_descriptor(cls, fetch)
-        __copy__ = zeugvar_descriptor(cls, fetch)
-        __deepcopy__ = zeugvar_descriptor(cls, fetch)
+        __doc__ = zeugvar_descriptor(cls, fetch, cv)
+        __wrapped__ = zeugvar_descriptor(cls, fetch, cv)
+        __repr__ = zeugvar_descriptor(cls, fetch, cv)
+        __str__ = zeugvar_descriptor(cls, fetch, cv)
+        __bytes__ = zeugvar_descriptor(cls, fetch, cv)
+        __format__ = zeugvar_descriptor(cls, fetch, cv)
+        __lt__ = zeugvar_descriptor(cls, fetch, cv)
+        __le__ = zeugvar_descriptor(cls, fetch, cv)
+        __eq__ = zeugvar_descriptor(cls, fetch, cv)
+        __ne__ = zeugvar_descriptor(cls, fetch, cv)
+        __gt__ = zeugvar_descriptor(cls, fetch, cv)
+        __ge__ = zeugvar_descriptor(cls, fetch, cv)
+        __hash__ = zeugvar_descriptor(cls, fetch, cv)
+        __bool__ = zeugvar_descriptor(cls, fetch, cv, undefined=lambda: False)
+        __getattr__ = zeugvar_descriptor(cls, fetch, cv)
+        __setattr__ = zeugvar_descriptor(cls, fetch, cv)
+        __delattr__ = zeugvar_descriptor(cls, fetch, cv)
+        __dir__ = zeugvar_descriptor(cls, fetch, cv, undefined=lambda: dir(cls), custom_mro=custom_mro)
+        __class__ = zeugvar_descriptor(cls, fetch, cv, undefined=lambda: cls)
+        __instancecheck__ = zeugvar_descriptor(cls, fetch, cv)
+        __subclasscheck__ = zeugvar_descriptor(cls, fetch, cv)
+        __call__ = zeugvar_descriptor(cls, fetch, cv)
+        __len__ = zeugvar_descriptor(cls, fetch, cv)
+        __length_hint__ = zeugvar_descriptor(cls, fetch, cv)
+        __getitem__ = zeugvar_descriptor(cls, fetch, cv)
+        __setitem__ = zeugvar_descriptor(cls, fetch, cv)
+        __delitem__ = zeugvar_descriptor(cls, fetch, cv)
+        __iter__ = zeugvar_descriptor(cls, fetch, cv)
+        __next__ = zeugvar_descriptor(cls, fetch, cv)
+        __reversed__ = zeugvar_descriptor(cls, fetch, cv)
+        __contains__ = zeugvar_descriptor(cls, fetch, cv)
+        __add__ = zeugvar_descriptor(cls, fetch, cv)
+        __sub__ = zeugvar_descriptor(cls, fetch, cv)
+        __mul__ = zeugvar_descriptor(cls, fetch, cv)
+        __matmul__ = zeugvar_descriptor(cls, fetch, cv)
+        __truediv__ = zeugvar_descriptor(cls, fetch, cv)
+        __floordiv__ = zeugvar_descriptor(cls, fetch, cv)
+        __mod__ = zeugvar_descriptor(cls, fetch, cv)
+        __divmod__ = zeugvar_descriptor(cls, fetch, cv)
+        __pow__ = zeugvar_descriptor(cls, fetch, cv)
+        __lshift__ = zeugvar_descriptor(cls, fetch, cv)
+        __rshift__ = zeugvar_descriptor(cls, fetch, cv)
+        __and__ = zeugvar_descriptor(cls, fetch, cv)
+        __xor__ = zeugvar_descriptor(cls, fetch, cv)
+        __or__ = zeugvar_descriptor(cls, fetch, cv)
+        __radd__ = zeugvar_descriptor(cls, fetch, cv)
+        __rsub__ = zeugvar_descriptor(cls, fetch, cv)
+        __rmul__ = zeugvar_descriptor(cls, fetch, cv)
+        __rmatmul__ = zeugvar_descriptor(cls, fetch, cv)
+        __rtruediv__ = zeugvar_descriptor(cls, fetch, cv)
+        __rfloordiv__ = zeugvar_descriptor(cls, fetch, cv)
+        __rmod__ = zeugvar_descriptor(cls, fetch, cv)
+        __rdivmod__ = zeugvar_descriptor(cls, fetch, cv)
+        __rpow__ = zeugvar_descriptor(cls, fetch, cv)
+        __rlshift__ = zeugvar_descriptor(cls, fetch, cv)
+        __rrshift__ = zeugvar_descriptor(cls, fetch, cv)
+        __rand__ = zeugvar_descriptor(cls, fetch, cv)
+        __rxor__ = zeugvar_descriptor(cls, fetch, cv)
+        __ror__ = zeugvar_descriptor(cls, fetch, cv)
+        __iadd__ = zeugvar_descriptor(cls, fetch, cv, fallback=_op_fallback("__add__"), mutator=True)
+        __isub__ = zeugvar_descriptor(cls, fetch, cv, fallback=_op_fallback("__sub__"), mutator=True)
+        __imul__ = zeugvar_descriptor(cls, fetch, cv, fallback=_op_fallback("__mul__"), mutator=True)
+        __imatmul__ = zeugvar_descriptor(cls, fetch, cv, fallback=_op_fallback("__matmul__"), mutator=True)
+        __itruediv__ = zeugvar_descriptor(cls, fetch, cv, fallback=_op_fallback("__truediv__"), mutator=True)
+        __ifloordiv__ = zeugvar_descriptor(cls, fetch, cv, fallback=_op_fallback("__floordiv__"), mutator=True)
+        __imod__ = zeugvar_descriptor(cls, fetch, cv, fallback=_op_fallback("__mod__"), mutator=True)
+        __ipow__ = zeugvar_descriptor(cls, fetch, cv, fallback=_op_fallback("__pow__"), mutator=True)
+        __ilshift__ = zeugvar_descriptor(cls, fetch, cv, fallback=_op_fallback("__lshift_"), mutator=True)
+        __irshift__ = zeugvar_descriptor(cls, fetch, cv, fallback=_op_fallback("__rshift__"), mutator=True)
+        __iand__ = zeugvar_descriptor(cls, fetch, cv, fallback=_op_fallback("__and__"), mutator=True)
+        __ixor__ = zeugvar_descriptor(cls, fetch, cv, fallback=_op_fallback("__xor__"), mutator=True)
+        __ior__ = zeugvar_descriptor(cls, fetch, cv, fallback=_op_fallback("__or__"), mutator=True)
+        __neg__ = zeugvar_descriptor(cls, fetch, cv)
+        __pos__ = zeugvar_descriptor(cls, fetch, cv)
+        __abs__ = zeugvar_descriptor(cls, fetch, cv)
+        __invert__ = zeugvar_descriptor(cls, fetch, cv)
+        __complex__ = zeugvar_descriptor(cls, fetch, cv)
+        __int__ = zeugvar_descriptor(cls, fetch, cv)
+        __float__ = zeugvar_descriptor(cls, fetch, cv)
+        __index__ = zeugvar_descriptor(cls, fetch, cv)
+        __round__ = zeugvar_descriptor(cls, fetch, cv)
+        __trunc__ = zeugvar_descriptor(cls, fetch, cv)
+        __floor__ = zeugvar_descriptor(cls, fetch, cv)
+        __ceil__ = zeugvar_descriptor(cls, fetch, cv)
+        __enter__ = zeugvar_descriptor(cls, fetch, cv)
+        __exit__ = zeugvar_descriptor(cls, fetch, cv)
+        __await__ = zeugvar_descriptor(cls, fetch, cv)
+        __aiter__ = zeugvar_descriptor(cls, fetch, cv)
+        __anext__ = zeugvar_descriptor(cls, fetch, cv)
+        __aenter__ = zeugvar_descriptor(cls, fetch, cv)
+        __aexit__ = zeugvar_descriptor(cls, fetch, cv)
+        __copy__ = zeugvar_descriptor(cls, fetch, cv)
+        __deepcopy__ = zeugvar_descriptor(cls, fetch, cv)
 
     zv = cast(_T, _ZeugVarMeta(cls.__name__, (), {}))
     if not custom_mro:
+
         def _mro_wrapper():
             try:
                 fetch()
             except RuntimeError:
                 return mro()
             else:
-                raise AttributeError(f"{cls.__name__!r} object has no attribute 'mro'") from None
+                raise AttributeError(
+                    f"{cls.__name__!r} object has no attribute 'mro'"
+                ) from None
 
         type.__setattr__(zv, "mro", _mro_wrapper)
     return zv
