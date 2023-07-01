@@ -1,8 +1,72 @@
+"""
+ZeugVars
+~~~~~~~~
+A simple & straight-forward Python module for creating context-dependent proxy objects.
+
+(C) bswck, 2023
+
+Short Description
+-----------------
+`zeugvars` is a Python module for creating context-dependent proxy objects.
+
+By 'proxy' we mean any object that forwards attribute access to another
+object.  By 'context-dependent' we mean that the object to which the proxy
+forwards attribute access can change depending on the context in which the
+proxy is used.
+
+Have you ever wondered how `flask.request` works?
+------------------------------------------------
+How is it possible that `flask.request` is different for each request, despite
+being a global variable?
+
+The answer is that `flask.request` is a proxy object: it forwards attribute
+access to an object that is different for each request. With a little simplification,
+the object to which `flask.request` forwards attribute access is stored
+in a `werkzeug.local.LocalProxy` object. The functionality of `zeugvars.zeugvar()`
+is roughly equivalent to `werkzeug.local.LocalProxy`. The `zeugvar` function
+creates a proxy object that forwards attribute access to an object stored
+in the provided manager, which could be any object that implements the
+`Manager` protocol; for example, a `contextvars.ContextVar` object.
+
+Usage
+-----
+The `zeugvar` function takes a `Manager` object and class (optional) as arguments.
+The `Manager` object must have `get` and `set` methods.  The `get` method returns
+the object to which the proxy forwards attribute access.  The `set` method sets
+the object to which the proxy forwards attribute access.  `set` is called when
+the proxy is being inplace modified.  The class is optional unless the `Manager`
+is bound, i.e. `Manager.get` returns an instance of a class.
+The user might provide custom `getter` and `setter` functions.
+This might be useful when there is the need to keep track of the tokens
+returned by `ContextVar.set()`, if using `ContextVar` as the manager.
+
+Example
+-------
+The following example shows how to use `zeugvar` with `contextvars.ContextVar`:
+
+>>> from contextvars import ContextVar
+>>> from zeugvars import zeugvar
+...
+>>> counter: ContextVar[int] = ContextVar("counter")
+>>> count = zeugvar(counter, int)
+...
+>>> counter.set(0)
+>>> count += 1
+>>> count
+1
+>>> count -= 1
+>>> count
+0
+>>> counter.set(1000)
+<Token...>
+>>> count
+1000
+"""
+
 import contextlib
 import functools
 from collections.abc import Callable
 from typing import TypeVar, Any, cast, Protocol, runtime_checkable
-
 
 _T = TypeVar("_T")
 
@@ -27,6 +91,8 @@ def zeugvar_descriptor(
     custom_mro: bool = False,
     inplace: bool = False,
 ) -> Any:
+    """Descriptor factory for zeugvars.zeugvar() proxies."""
+
     class _ZeugVarDescriptor:
         attr_name: str
 
@@ -73,7 +139,6 @@ def zeugvar_descriptor(
                         attribute = functools.partial(fallback, obj)
 
             if inplace:
-
                 def _apply_inplace(*args: Any, **kwargs: Any) -> _T:
                     ret = attribute(*args, **kwargs)
                     setter(mgr, ret)
@@ -95,7 +160,7 @@ def _op_fallback(op_name: str) -> Callable[[Any, Any], Any]:
     return lambda obj, op: getattr(obj, op_name)(op)
 
 
-def cv_getter(mgr: Manager[_T]) -> _T:
+def _cv_getter(mgr: Manager[_T]) -> _T:
     try:
         obj = mgr.get()
     except LookupError:
@@ -103,7 +168,7 @@ def cv_getter(mgr: Manager[_T]) -> _T:
     return obj
 
 
-def cv_setter(mgr: Manager[_T], value: _T) -> None:
+def _cv_setter(mgr: Manager[_T], value: _T) -> None:
     mgr.set(value)
 
 
@@ -113,11 +178,13 @@ def zeugvar(
     getter: Callable[[Manager[_T]], _T] = None,  # type: ignore[assignment]
     setter: Callable[[Manager[_T], _T], None] = None,  # type: ignore[assignment]
 ) -> _T:
+    """See `zeugvars` module docstring for usage and example."""
+
     if getter is None:
-        getter = cv_getter
+        getter = _cv_getter
 
     if setter is None:
-        setter = cv_setter
+        setter = _cv_setter
 
     if cls is None:
         cls = type(getter(mgr))
