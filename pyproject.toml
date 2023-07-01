@@ -1,10 +1,10 @@
 [tool.poetry]
 name = "zeugvars"
-version = "0.1.1"
-description = ""
+version = "0.1.2"
+description = "A simple & straight-forward Python module for creating context-dependent proxy objects."
 authors = ["bswck <bswck.dev@gmail.com>"]
 readme = "README.md"
-homepage = "https://github.com/bswck/configzen"
+homepage = "https://github.com/bswck/zeugvars"
 
 [tool.poetry.dependencies]
 python = "^3.10"

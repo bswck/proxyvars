@@ -58,7 +58,7 @@ The following example shows how to use `zeugvar` with `contextvars.ContextVar`:
 >>> count
 0
 >>> counter.set(1000)
-<Token...>
+<Token var=<ContextVar name='counter' at ...> at ...>
 >>> count
 1000
 """
