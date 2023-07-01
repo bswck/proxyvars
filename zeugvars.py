@@ -48,9 +48,7 @@ def zeugvar_descriptor(
                             return set(dir(cls)) - {"mro"}
 
                     elif callable(undefined):
-
-                        def attribute(*args: Any, **kwargs: Any) -> Any:
-                            return undefined(*args, **kwargs)
+                        attribute = undefined
 
                     else:
                         raise
