@@ -1,16 +1,26 @@
 import contextlib
 import functools
 from collections.abc import Callable
-from contextvars import ContextVar
-from typing import TypeVar, Any, cast
+from typing import TypeVar, Any, cast, Protocol, runtime_checkable
+
 
 _T = TypeVar("_T")
 
 
+@runtime_checkable
+class Manager(Protocol[_T]):
+    def get(self) -> _T:
+        ...
+
+    def set(self, value: _T) -> Any:
+        ...
+
+
 def zeugvar_descriptor(
     cls: type[_T],
-    fetch: Callable[[], _T],
-    cv: ContextVar[_T],
+    mgr: Manager[_T],
+    getter: Callable[[Manager[_T]], _T],
+    setter: Callable[[Manager[_T], _T], None],
     *,
     undefined: Callable[..., Any] | None = None,
     fallback: Callable[..., Any] | None = None,
@@ -30,18 +40,18 @@ def zeugvar_descriptor(
             if self.attr_name == "__getattr__":
 
                 def attribute(name: str) -> Any:
-                    return getattr(fetch(), name)
+                    return getattr(getter(mgr), name)
 
             elif self.attr_name in ("__repr__", "__str__"):
                 with contextlib.suppress(RuntimeError):
-                    return getattr(fetch(), self.attr_name)
+                    return getattr(getter(mgr), self.attr_name)
 
                 def attribute() -> str:  # type: ignore[misc]
                     return f"<unbound {cls.__name__!r} object>"
 
             else:
                 try:
-                    obj = fetch()
+                    obj = getter(mgr)
                 except RuntimeError:
                     if self.attr_name == "__dir__" and not custom_mro:
 
@@ -63,19 +73,20 @@ def zeugvar_descriptor(
                         attribute = functools.partial(fallback, obj)
 
             if inplace:
+
                 def _apply_inplace(*args: Any, **kwargs: Any) -> _T:
                     ret = attribute(*args, **kwargs)
-                    cv.set(ret)
+                    setter(mgr, ret)
                     return instance
 
                 return _apply_inplace
             return attribute
 
         def __set__(self, instance: _T, value: Any) -> None:
-            setattr(fetch(), self.attr_name, value)
+            setattr(getter(mgr), self.attr_name, value)
 
         def __delete__(self, instance: _T) -> None:
-            delattr(fetch(), self.attr_name)
+            delattr(getter(mgr), self.attr_name)
 
     return _ZeugVarDescriptor()
 
@@ -84,23 +95,38 @@ def _op_fallback(op_name: str) -> Callable[[Any, Any], Any]:
     return lambda obj, op: getattr(obj, op_name)(op)
 
 
+def cv_getter(mgr: Manager[_T]) -> _T:
+    try:
+        obj = mgr.get()
+    except LookupError:
+        raise RuntimeError("No object in context") from None
+    return obj
+
+
+def cv_setter(mgr: Manager[_T], value: _T) -> None:
+    mgr.set(value)
+
+
 def zeugvar(
-    cv: ContextVar[_T],
+    mgr: Manager[_T],
     cls: type[_T] = None,  # type: ignore[assignment]
+    getter: Callable[[Manager[_T]], _T] = None,  # type: ignore[assignment]
+    setter: Callable[[Manager[_T], _T], None] = None,  # type: ignore[assignment]
 ) -> _T:
-    def fetch() -> _T:
-        try:
-            obj = cv.get()
-        except LookupError:
-            raise RuntimeError("No object in context") from None
-        return obj
+    if getter is None:
+        getter = cv_getter
+
+    if setter is None:
+        setter = cv_setter
 
     if cls is None:
-        cls = type(fetch())
+        cls = type(getter(mgr))
 
     mro: Callable[[], tuple[type[Any], ...]] = object.__getattribute__(cls, "mro")
     custom_mro = not hasattr(mro, "__self__")
-    descriptor = functools.partial(zeugvar_descriptor, cls, fetch, cv, custom_mro=custom_mro)
+    descriptor = functools.partial(
+        zeugvar_descriptor, cls, mgr, getter, setter, custom_mro=custom_mro
+    )
 
     class _ZeugVarMeta(type):
         __doc__ = descriptor()
@@ -202,7 +228,7 @@ def zeugvar(
 
         def _mro_wrapper() -> tuple[type[Any], ...]:
             try:
-                fetch()
+                getter(mgr)
             except RuntimeError:
                 return mro()
             else:
