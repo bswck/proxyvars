@@ -1,5 +1,4 @@
 import contextlib
-import functools
 from collections.abc import Callable
 from contextvars import ContextVar
 from typing import TypeVar, Any, cast
@@ -10,6 +9,10 @@ _T = TypeVar("_T")
 def zeugvar_descriptor(
     cls: type[_T],
     fetch: Callable[[], _T],
+    *,
+    undefined: Callable[..., Any] | None = None,
+    fallback: Callable[..., Any] | None = None,
+    custom_mro: bool = False
 ) -> Any:
     class _ZeugVarDescriptor:
         attr_name: str
@@ -20,18 +23,28 @@ def zeugvar_descriptor(
         def __set_name__(self, owner: type[_T], name: str) -> None:
             self.attr_name = name
 
-        @functools.cached_property
-        def is_printed(self) -> bool:
-            return self.attr_name in ("__repr__", "__str__")
-
         def __get__(self, instance: _T, owner: type[_T] | None) -> Any:
             if self.attr_name == "__getattr__":
                 return lambda name: getattr(fetch(), name)
-            if self.is_printed:
+            if self.attr_name in ("__repr__", "__str__"):
                 with contextlib.suppress(RuntimeError):
                     return getattr(fetch(), self.attr_name)
                 return lambda: f"<unbound {cls.__name__!r} object>"
-            return getattr(fetch(), self.attr_name)
+            try:
+                obj = fetch()
+            except RuntimeError:
+                if self.attr_name == "__dir__" and not custom_mro:
+                    return lambda: set(dir(cls)) - {"mro"}
+                if callable(undefined):
+                    return lambda *args, **kwargs: undefined(*args, **kwargs)
+                raise
+            else:
+                try:
+                    return getattr(obj, self.attr_name)
+                except AttributeError:
+                    if callable(fallback):
+                        return lambda *args, **kwargs: fallback(obj, *args, **kwargs)
+                    raise
 
         def __set__(self, instance: _T, value: Any) -> None:
             setattr(fetch(), self.attr_name, value)
@@ -56,6 +69,9 @@ def zeugvar(
     if cls is None:
         cls = type(fetch())
 
+    mro = object.__getattribute__(cls, "mro")
+    custom_mro = not hasattr(mro, "__self__")
+
     class _ZeugVarMeta(type):
         __doc__ = zeugvar_descriptor(cls, fetch)
         __wrapped__ = zeugvar_descriptor(cls, fetch)
@@ -70,12 +86,12 @@ def zeugvar(
         __gt__ = zeugvar_descriptor(cls, fetch)
         __ge__ = zeugvar_descriptor(cls, fetch)
         __hash__ = zeugvar_descriptor(cls, fetch)
-        __bool__ = zeugvar_descriptor(cls, fetch)
+        __bool__ = zeugvar_descriptor(cls, fetch, undefined=lambda: False)
         __getattr__ = zeugvar_descriptor(cls, fetch)
         __setattr__ = zeugvar_descriptor(cls, fetch)
         __delattr__ = zeugvar_descriptor(cls, fetch)
-        __dir__ = zeugvar_descriptor(cls, fetch)
-        __class__ = zeugvar_descriptor(cls, fetch)
+        __dir__ = zeugvar_descriptor(cls, fetch, undefined=lambda: dir(cls), custom_mro=custom_mro)
+        __class__ = zeugvar_descriptor(cls, fetch, undefined=lambda: cls)
         __instancecheck__ = zeugvar_descriptor(cls, fetch)
         __subclasscheck__ = zeugvar_descriptor(cls, fetch)
         __call__ = zeugvar_descriptor(cls, fetch)
@@ -116,19 +132,19 @@ def zeugvar(
         __rand__ = zeugvar_descriptor(cls, fetch)
         __rxor__ = zeugvar_descriptor(cls, fetch)
         __ror__ = zeugvar_descriptor(cls, fetch)
-        __iadd__ = zeugvar_descriptor(cls, fetch)
-        __isub__ = zeugvar_descriptor(cls, fetch)
-        __imul__ = zeugvar_descriptor(cls, fetch)
-        __imatmul__ = zeugvar_descriptor(cls, fetch)
-        __itruediv__ = zeugvar_descriptor(cls, fetch)
-        __ifloordiv__ = zeugvar_descriptor(cls, fetch)
-        __imod__ = zeugvar_descriptor(cls, fetch)
-        __ipow__ = zeugvar_descriptor(cls, fetch)
-        __ilshift__ = zeugvar_descriptor(cls, fetch)
-        __irshift__ = zeugvar_descriptor(cls, fetch)
-        __iand__ = zeugvar_descriptor(cls, fetch)
-        __ixor__ = zeugvar_descriptor(cls, fetch)
-        __ior__ = zeugvar_descriptor(cls, fetch)
+        __iadd__ = zeugvar_descriptor(cls, fetch, fallback=lambda obj, op: getattr(obj, "__add__")(op))
+        __isub__ = zeugvar_descriptor(cls, fetch, fallback=lambda obj, op: getattr(obj, "__sub__")(op))
+        __imul__ = zeugvar_descriptor(cls, fetch, fallback=lambda obj, op: getattr(obj, "__mul__")(op))
+        __imatmul__ = zeugvar_descriptor(cls, fetch, fallback=lambda obj, op: getattr(obj, "__matmul__")(op))
+        __itruediv__ = zeugvar_descriptor(cls, fetch, fallback=lambda obj, op: getattr(obj, "__truediv__")(op))
+        __ifloordiv__ = zeugvar_descriptor(cls, fetch, fallback=lambda obj, op: getattr(obj, "__floordiv__")(op))
+        __imod__ = zeugvar_descriptor(cls, fetch, fallback=lambda obj, op: getattr(obj, "__mod__")(op))
+        __ipow__ = zeugvar_descriptor(cls, fetch, fallback=lambda obj, op: getattr(obj, "__pow__")(op))
+        __ilshift__ = zeugvar_descriptor(cls, fetch, fallback=lambda obj, op: getattr(obj, "__lshift_")(op))
+        __irshift__ = zeugvar_descriptor(cls, fetch, fallback=lambda obj, op: getattr(obj, "__rshift__")(op))
+        __iand__ = zeugvar_descriptor(cls, fetch, fallback=lambda obj, op: getattr(obj, "__and__")(op))
+        __ixor__ = zeugvar_descriptor(cls, fetch, fallback=lambda obj, op: getattr(obj, "__xor__")(op))
+        __ior__ = zeugvar_descriptor(cls, fetch, fallback=lambda obj, op: getattr(obj, "__or__")(op))
         __neg__ = zeugvar_descriptor(cls, fetch)
         __pos__ = zeugvar_descriptor(cls, fetch)
         __abs__ = zeugvar_descriptor(cls, fetch)
@@ -151,4 +167,15 @@ def zeugvar(
         __copy__ = zeugvar_descriptor(cls, fetch)
         __deepcopy__ = zeugvar_descriptor(cls, fetch)
 
-    return cast(_T, _ZeugVarMeta(cls.__name__, (), {}))
+    zv = cast(_T, _ZeugVarMeta(cls.__name__, (), {}))
+    if not custom_mro:
+        def _mro_wrapper():
+            try:
+                fetch()
+            except RuntimeError:
+                return mro()
+            else:
+                raise AttributeError(f"{cls.__name__!r} object has no attribute 'mro'") from None
+
+        type.__setattr__(zv, "mro", _mro_wrapper)
+    return zv
