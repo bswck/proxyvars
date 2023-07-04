@@ -1,6 +1,6 @@
 """`zeugvars`.
 
-A simple & straight-forward Python module for creating context-dependent proxy objects.
+A simple & straight-forward Python library for creating context-dependent proxy objects.
 
 (C) bswck, 2023
 """

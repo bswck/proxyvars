@@ -1,6 +1,6 @@
 ## `zeugvars`
 
-A simple & straight-forward Python module for creating type-safe, context-dependent proxy objects.
+A simple & straight-forward Python library for creating type-safe, context-dependent proxy objects.
 
 ## Example
 
