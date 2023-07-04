@@ -103,7 +103,7 @@ Or by directly specifying it in the configuration like so:
 Alternatively, you can add it directly from the source:
 
 ```toml
-[tool.poetry.dependencies."gd.py"]
+[tool.poetry.dependencies."zeugars"]
 git = "https://github.com/bswck/zeugvars.git"
 ```
 
