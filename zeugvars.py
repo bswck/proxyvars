@@ -1,16 +1,14 @@
-"""
-ZeugVars
-~~~~~~~~
+"""ZeugVars.
+
 A simple & straight-forward Python module for creating context-dependent proxy objects.
 
 (C) bswck, 2023
-
 """
 
+from collections.abc import Callable
 from contextlib import suppress
 from functools import partial
-from collections.abc import Callable
-from typing import TypeVar, Any, cast, Protocol, runtime_checkable
+from typing import Any, Protocol, TypeVar, cast, runtime_checkable
 
 __all__ = ("zeugvar", "proxy")
 
@@ -19,11 +17,22 @@ _T = TypeVar("_T")
 
 @runtime_checkable
 class Manager(Protocol[_T]):
+    """Protocol for zeugvars managers.
+
+    Matches `contextvars.ContextVar`.
+    """
+
     def get(self) -> _T:
-        ...
+        """Get the current value of the manager.
+
+        Raises
+        ------
+        LookupError
+            If no object is bound to the manager.
+        """
 
     def set(self, value: _T) -> Any:
-        ...
+        """Set the current value of the manager."""
 
 
 def zeugvar_descriptor(
@@ -37,7 +46,36 @@ def zeugvar_descriptor(
     custom_mro: bool = False,
     inplace: bool = False,
 ) -> Any:
-    """Descriptor factory for zeugvars.zeugvar() proxies."""
+    """Descriptor factory for zeugvars.
+
+    Parameters
+    ----------
+    cls
+        The class of the underlying variable accessed within the manager.
+    mgr
+        Manager object.
+    getter
+        A function that returns the underlying variable from the manager.
+    setter
+        A function that sets the underlying variable within the manager.
+    undefined
+        Callable to be used as a fallback in case the variable is undefined
+        (manager raises a `LookupError`).
+    fallback
+        Callable to be used as a fallback in case the attribute is undefined
+        (the underlying variable raises an `AttributeError`).
+    custom_mro
+        Whether the class implements a custom `mro()` method.
+    inplace
+        Whether to treat the attribute as an inplace operator.
+        Calls the setter with the result of the attribute call.
+
+    Returns
+    -------
+    descriptor
+        A descriptor object that can be used to create zeugvars delegates.
+
+    """
 
     class _ZeugVarDescriptor:
         attr_name: str
@@ -112,7 +150,8 @@ def _cv_getter(mgr: Manager[_T]) -> _T:
     try:
         obj = mgr.get()
     except LookupError:
-        raise RuntimeError("No object in context") from None
+        msg = f"No object in {mgr}"
+        raise RuntimeError(msg) from None
     return obj
 
 
@@ -126,7 +165,27 @@ def zeugvar(
     getter: Callable[[Manager[_T]], _T] = None,  # type: ignore[assignment]
     setter: Callable[[Manager[_T], _T], None] = None,  # type: ignore[assignment]
 ) -> _T:
-    """See `zeugvars` module docstring for usage and example."""
+    """Create a zeugvar proxy object.
+
+    Parameters
+    ----------
+    mgr
+        Manager object. Must implement the `Manager` protocol.
+        Matches `contextvars.ContextVar`.
+    cls
+        The class of the underlying variable accessed within the manager.
+    getter
+        A function that returns the underlying variable from the manager.
+    setter
+        A function that sets the underlying variable within the manager.
+
+    Returns
+    -------
+    proxy
+        A proxy object.
+    """
+
+    # pylint: disable=too-many-statements
 
     if getter is None:
         getter = _cv_getter
@@ -145,7 +204,7 @@ def zeugvar(
         custom_mro = not hasattr(mro, "__self__")
 
     descriptor = partial(
-        zeugvar_descriptor, cls, mgr, getter, setter, custom_mro=custom_mro
+        zeugvar_descriptor, cls, mgr, getter, setter, custom_mro=custom_mro,
     )
 
     class _ZeugVarMeta(type):
@@ -249,7 +308,7 @@ def zeugvar(
 
     cls_name = cls.__name__ if cls is not None else f"zeugvar_{id(mgr):x}"
 
-    zv = cast(_T, _ZeugVarMeta(cls_name, (), {}))
+    zv_proxy = cast(_T, _ZeugVarMeta(cls_name, (), {}))
     if not custom_mro:
 
         def _mro_wrapper() -> tuple[type[Any], ...]:
@@ -257,13 +316,11 @@ def zeugvar(
                 obj = getter(mgr)
             except RuntimeError:
                 return mro()
-            else:
-                raise AttributeError(
-                    f"{type(obj).__name__!r} object has no attribute 'mro'"
-                ) from None
+            msg = f"{type(obj).__name__!r} object has no attribute 'mro'"
+            raise AttributeError(msg) from None
 
-        type.__setattr__(zv, "mro", _mro_wrapper)
-    return zv
+        type.__setattr__(zv_proxy, "mro", _mro_wrapper)
+    return zv_proxy
 
 
 proxy = zeugvar
