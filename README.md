@@ -4,7 +4,7 @@ A simple & straight-forward Python module for creating type-safe, context-depend
 
 ## Example
 
-The following example shows how to use `zeugvar` with `contextvars.ContextVar`:
+The following example shows how to use `zeugvars` with `contextvars`:
 
 ```python
 >>> from contextvars import ContextVar
