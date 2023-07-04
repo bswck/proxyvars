@@ -1,4 +1,4 @@
-## ZeugVars
+## `zeugvars`
 
 A simple & straight-forward Python module for creating type-safe, context-dependent proxy objects.
 
@@ -34,7 +34,7 @@ The following example shows how to use `zeugvar` with `contextvars.ContextVar`:
 
 ## Ok, but what is this?
 
-_ZeugVars_ is a Python module for creating context-dependent proxy objects.
+`zeugvars` is a Python module for creating context-dependent proxy objects.
 
 By 'proxy' we mean any object that forwards attribute access to another
 object. By 'context-dependent' we mean that the object to which the proxy
