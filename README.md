@@ -82,14 +82,14 @@ I think now you can see where the name comes from.
 
 ### pip
 ```bash
-pip install zeugvars
+$ pip install zeugvars
 ```
 
 ### poetry
 
 You can add `zeugvars` as a dependency with the following command:
 
-```console
+```bash
 $ poetry add zeugvars
 ```
 
