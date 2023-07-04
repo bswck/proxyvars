@@ -66,7 +66,7 @@ returned by `ContextVar.set()`, if using `ContextVar` as the manager.
 ## When would you use `zeugvars`?
 
 You could use `zeugvars` when...
-* ...writing a thread-safe application that needs to share resources globally.
+* ...writing a thread-safe application that operates on fixed resource that are different per thread.
 * ...improving code readability by avoiding passing around the same object to every function.
 * ...writing a web application that operates on fixed resources per request.
 * ...writing an asynchronous application that operates on fixed resources between tasks.
