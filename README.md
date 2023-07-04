@@ -8,20 +8,26 @@ The following example shows how to use `zeugvar` with `contextvars.ContextVar`:
 
 ```python
 >>> from contextvars import ContextVar
->>> from zeugvars import zeugvar
+>>> from zeugvars import proxy
 ...
->>> counter: ContextVar[int] = ContextVar("counter")
->>> count = zeugvar(counter, int)
+>>> count_var: ContextVar[int] = ContextVar("counter")
+>>> count = proxy(counter, int)
 ...
->>> counter.set(0)
+>>> count
+<unbound 'int' object>
+>>> count_var.set(0)
+>>> count
+0
 >>> count += 1
 >>> count
+1
+>>> count_var.get()
 1
 >>> count -= 1
 >>> count
 0
->>> counter.set(1000)
-<Token var=<ContextVar name='counter' at ...> at ...>
+>>> count_var.set(1000)
+<Token var=<ContextVar name='count_var' at ...> at ...>
 >>> count
 1000
 ```
@@ -44,7 +50,7 @@ is different for each request, despite being a global variable?
 The answer is that `flask.request` is a such a proxy object as an instance of `werkzeug.local.LocalProxy`.
 For every request, `flask.request` forwards attribute access to a different `flask.Request` object.
 
-The functionality of `zeugvars.zeugvar()` is a more generic version of `werkzeug.local.LocalProxy`.
+The functionality of `zeugvars.zeugvar()` (or, as you prefer, `zeugvars.proxy()`) is a more generic version of `werkzeug.local.LocalProxy`.
 
 It takes a `Manager` object and the class of the object to which the proxy points.
 
@@ -58,13 +64,13 @@ This might be useful when there is the need to keep track of the tokens
 returned by `ContextVar.set()`, if using `ContextVar` as the manager.
 
 ## When would you use `zeugvars`?
-* Writing a thread-safe application that needs to share resources globally.
-* Improving code readability by avoiding passing around the same object to every function.
-* Writing a web application that needs to share resources between requests.
 
-_Note: For the sake of readability, you might use `zeugvar.proxy()` instead of `zeugvar.zeugvar()`._
-_`zeugvar.proxy()` is an alias for `zeugvar.zeugvar()`._
-
+You could use `zeugvars` when...
+* ...writing a thread-safe application that needs to share resources globally.
+* ...improving code readability by avoiding passing around the same object to every function.
+* ...writing a web application that operates on fixed resources per request.
+* ...writing an asynchronous application that operates on fixed resources between tasks.
+* ...having any other case where you could use global variables that are context-dependent!
 
 ## Why does it have such a weird name?
 
