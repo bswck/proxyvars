@@ -199,8 +199,12 @@ def zeugvar(
 
     if cls is None:
         custom_mro = False
+
+        def mro() -> list[type[Any]]:
+            return [object]
+
     else:
-        mro: Callable[[], tuple[type[Any], ...]] = object.__getattribute__(cls, "mro")
+        mro: Callable[[], list[type[Any]]] = object.__getattribute__(cls, "mro")
         custom_mro = not hasattr(mro, "__self__")
 
     descriptor = partial(
@@ -311,7 +315,7 @@ def zeugvar(
     zv_proxy = cast(_T, _ZeugVarMeta(cls_name, (), {}))
     if not custom_mro:
 
-        def _mro_wrapper() -> tuple[type[Any], ...]:
+        def _mro_wrapper() -> list[type[Any]]:
             try:
                 obj = getter(mgr)
             except RuntimeError:
