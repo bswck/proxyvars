@@ -97,7 +97,7 @@ Or by directly specifying it in the configuration like so:
 
 ```toml
 [tool.poetry.dependencies]
-"zeugvars" = "^1.0.0"
+"zeugvars" = "^0.2.0"
 ```
 
 Alternatively, you can add it directly from the source:
