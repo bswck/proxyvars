@@ -109,11 +109,12 @@ git = "https://github.com/bswck/zeugvars.git"
 
 ## Documentation
 
-### `zeugvars.zeugvar(manager, cls=None, getter=None, setter=None)`
+### `zeugvars.zeugvar(mgr, cls=None, getter=None, setter=None)`
+
 Creates a context-dependent proxy object.
 
 #### Parameters
-* `manager`: The manager object. Must have `get` and `set` methods.
-* `cls`: The class of the object to which the proxy forwards attribute access.
-* `getter`: A function that takes the manager as its only argument and returns the object to which the proxy forwards attribute access.
-* `setter`: A function that takes the manager and the new value as its arguments and sets the object to which the proxy forwards attribute access.
+* `manager`: Manager object. Must implement the `Manager` protocol. Matches `contextvars.ContextVar`.
+* `cls`: The class of the underlying variable accessed within the manager. Optional.
+* `getter`: A function that returns the underlying variable from the manager. Optional.
+* `setter`: A function that sets the underlying variable within the manager. Optional.

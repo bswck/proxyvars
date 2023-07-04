@@ -1,4 +1,4 @@
-"""ZeugVars.
+"""`zeugvars`.
 
 A simple & straight-forward Python module for creating context-dependent proxy objects.
 
