@@ -1,6 +1,6 @@
 ## ZeugVars
 
-A simple & straight-forward Python module for creating context-dependent proxy objects.
+A simple & straight-forward Python module for creating type-safe, context-dependent proxy objects.
 
 ## Example
 
@@ -10,7 +10,7 @@ The following example shows how to use `zeugvar` with `contextvars.ContextVar`:
 >>> from contextvars import ContextVar
 >>> from zeugvars import proxy
 ...
->>> count_var: ContextVar[int] = ContextVar("count_var")
+>>> count_var = ContextVar("count_var")
 >>> count = proxy(counter, int)
 ...
 >>> count
