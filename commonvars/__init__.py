@@ -1,6 +1,7 @@
-"""`zeugvars`.
+"""`commonvars`.
 
-A simple & straight-forward Python library for creating context-dependent proxy objects.
+A simple & straight-forward Python library for creating common variables
+(context-dependent proxy objects).
 
 (C) bswck, 2023
 """
@@ -10,14 +11,14 @@ from contextlib import suppress
 from functools import partial
 from typing import Any, Protocol, TypeVar, cast, runtime_checkable
 
-__all__ = ("zeugvar", "proxy")
+__all__ = ("commonvar", "proxy")
 
 _T = TypeVar("_T")
 
 
 @runtime_checkable
 class Manager(Protocol[_T]):
-    """Protocol for zeugvars managers.
+    """Protocol for commonvars managers.
 
     Matches `contextvars.ContextVar`.
     """
@@ -35,7 +36,7 @@ class Manager(Protocol[_T]):
         """Set the current value of the manager."""
 
 
-def zeugvar_descriptor(
+def commonvar_descriptor(
     cls: type[_T] | None,
     mgr: Manager[_T],
     getter: Callable[[Manager[_T]], _T],
@@ -45,7 +46,7 @@ def zeugvar_descriptor(
     fallback: Callable[..., Any] | None = None,
     inplace: bool = False,
 ) -> Any:
-    """Descriptor factory for zeugvars.
+    """Descriptor factory for commonvars.
 
     Parameters
     ----------
@@ -70,7 +71,7 @@ def zeugvar_descriptor(
     Returns
     -------
     descriptor
-        A descriptor object that can be used to create zeugvars delegates.
+        A descriptor object that can be used to create commonvars delegates.
 
     """
 
@@ -95,7 +96,7 @@ def zeugvar_descriptor(
 
                 def attribute() -> str:  # type: ignore[misc]
                     if cls is None:
-                        return "<unbound zeugvar>"
+                        return "<unbound commonvar>"
                     return f"<unbound {cls.__name__!r} object>"
 
             else:
@@ -152,13 +153,13 @@ def _cv_setter(mgr: Manager[_T], value: _T) -> None:
     mgr.set(value)
 
 
-def zeugvar(
+def commonvar(
     mgr: Manager[_T],
     cls: type[_T] | None = None,
     getter: Callable[[Manager[_T]], _T] = None,  # type: ignore[assignment]
     setter: Callable[[Manager[_T], _T], None] = None,  # type: ignore[assignment]
 ) -> _T:
-    """Create a zeugvar proxy object.
+    """Create a common variable, i.e. a proxy object.
 
     Parameters
     ----------
@@ -190,9 +191,9 @@ def zeugvar(
         with suppress(RuntimeError):
             cls = type(getter(mgr))
 
-    descriptor = partial(zeugvar_descriptor, cls, mgr, getter, setter)
+    descriptor = partial(commonvar_descriptor, cls, mgr, getter, setter)
 
-    class _ZeugVarMeta:
+    class _CommonVarMeta:
         __doc__ = descriptor()
         __wrapped__ = descriptor()
         __repr__ = descriptor()
@@ -292,10 +293,10 @@ def zeugvar(
         __deepcopy__ = descriptor()
 
     if cls is not None:
-        _ZeugVarMeta.__name__ = _ZeugVarMeta.__qualname__ = cls.__name__
+        _CommonVarMeta.__name__ = _CommonVarMeta.__qualname__ = cls.__name__
     else:
-        _ZeugVarMeta.__name__ = _ZeugVarMeta.__qualname__ = f"zeugvar_{id(mgr):x}"
-    return cast(_T, _ZeugVarMeta())
+        _CommonVarMeta.__name__ = _CommonVarMeta.__qualname__ = f"commonvar_{id(mgr):x}"
+    return cast(_T, _CommonVarMeta())
 
 
-proxy = zeugvar
+proxy = commonvar
