@@ -7,34 +7,28 @@ A simple & straight-forward Python library for creating type-safe, context-depen
 The following example shows how to use `commonvars` with `contextvars`:
 
 ```python
->> > from contextvars import ContextVar
->> > from commonvars import proxy
-
+>>> from contextvars import ContextVar
+>>> from commonvars import proxy
 ...
->> > count_var = ContextVar("count_var")
->> > count = proxy(counter, int)
+>>> count_var = ContextVar("count_var")
+>>> count = proxy(counter, int)
 ...
->> > count
-< unbound
-'int'
-object >
->> > count_var.set(0)
->> > count
+>>> count
+<unbound 'int' object>
+>>> count_var.set(0)
+>>> count
 0
->> > count += 1
->> > count
+>>> count += 1
+>>> count
 1
->> > count_var.get()
+>>> count_var.get()
 1
->> > count -= 1
->> > count
+>>> count -= 1
+>>> count
 0
->> > count_var.set(1000)
-< Token
-var = < ContextVar
-name = 'count_var'
-at... > at... >
->> > count
+>>> count_var.set(1000)
+<Token var=<ContextVar name='count_var' at ...> at ...>
+>>> count
 1000
 ```
 
@@ -72,11 +66,11 @@ returned by `ContextVar.set()`, if using `ContextVar` as the manager.
 ## When would you use `commonvars`?
 
 You could use `commonvars` when...
-* ...writing a thread-safe application that operates on fixed resources specific for separate threads.
+* ...writing a thread-safe application that operates on resources specific for separate threads.
 * ...improving code readability by avoiding passing around the same object to every function.
-* ...writing a web application that operates on fixed resources per request.
-* ...writing an asynchronous application that operates on fixed resources between tasks.
-* ...having any other case where you could use global variables that are context-dependent!
+* ...writing a web application that operates on resources specific per request.
+* ...writing an asynchronous application that operates on resources specific between tasks.
+* ...having any other case where you could use common variables that are context-dependent!
 
 ## Installation
 
