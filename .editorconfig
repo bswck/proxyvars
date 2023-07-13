@@ -1,2 +1,3 @@
 [*.py]
 max_line_length = 88
+end_of_line = lf

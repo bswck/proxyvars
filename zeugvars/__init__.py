@@ -43,7 +43,6 @@ def zeugvar_descriptor(
     *,
     undefined: Callable[..., Any] | None = None,
     fallback: Callable[..., Any] | None = None,
-    custom_mro: bool = False,
     inplace: bool = False,
 ) -> Any:
     """Descriptor factory for zeugvars.
@@ -64,8 +63,6 @@ def zeugvar_descriptor(
     fallback
         Callable to be used as a fallback in case the attribute is undefined
         (the underlying variable raises an `AttributeError`).
-    custom_mro
-        Whether the class implements a custom `mro()` method.
     inplace
         Whether to treat the attribute as an inplace operator.
         Calls the setter with the result of the attribute call.
@@ -105,12 +102,7 @@ def zeugvar_descriptor(
                 try:
                     obj = getter(mgr)
                 except RuntimeError:
-                    if self.attr_name == "__dir__" and not custom_mro:
-
-                        def attribute() -> list[str]:  # type: ignore[misc]
-                            return list(set(dir(cls)) - {"mro"})
-
-                    elif callable(undefined):
+                    if callable(undefined):
                         attribute = undefined
 
                     else:
@@ -125,6 +117,7 @@ def zeugvar_descriptor(
                         attribute = partial(fallback, obj)
 
             if inplace:
+
                 def _apply_inplace(*args: Any, **kwargs: Any) -> _T:
                     ret = attribute(*args, **kwargs)
                     setter(mgr, ret)
@@ -197,21 +190,9 @@ def zeugvar(
         with suppress(RuntimeError):
             cls = type(getter(mgr))
 
-    if cls is None:
-        custom_mro = False
+    descriptor = partial(zeugvar_descriptor, cls, mgr, getter, setter)
 
-        def mro() -> list[type[Any]]:
-            return [object]
-
-    else:
-        mro: Callable[[], list[type[Any]]] = object.__getattribute__(cls, "mro")
-        custom_mro = not hasattr(mro, "__self__")
-
-    descriptor = partial(
-        zeugvar_descriptor, cls, mgr, getter, setter, custom_mro=custom_mro,
-    )
-
-    class _ZeugVarMeta(type):
+    class _ZeugVarMeta:
         __doc__ = descriptor()
         __wrapped__ = descriptor()
         __repr__ = descriptor()
@@ -235,9 +216,9 @@ def zeugvar(
         else:
             __dir__ = descriptor(undefined=lambda: dir(cls))
             __class__ = descriptor(undefined=lambda: cls)
+        __call__ = descriptor()
         __instancecheck__ = descriptor()
         __subclasscheck__ = descriptor()
-        __call__ = descriptor()
         __len__ = descriptor()
         __length_hint__ = descriptor()
         __getitem__ = descriptor()
@@ -310,21 +291,11 @@ def zeugvar(
         __copy__ = descriptor()
         __deepcopy__ = descriptor()
 
-    cls_name = cls.__name__ if cls is not None else f"zeugvar_{id(mgr):x}"
-
-    zv_proxy = cast(_T, _ZeugVarMeta(cls_name, (), {}))
-    if not custom_mro:
-
-        def _mro_wrapper() -> list[type[Any]]:
-            try:
-                obj = getter(mgr)
-            except RuntimeError:
-                return mro()
-            msg = f"{type(obj).__name__!r} object has no attribute 'mro'"
-            raise AttributeError(msg) from None
-
-        type.__setattr__(zv_proxy, "mro", _mro_wrapper)
-    return zv_proxy
+    if cls is not None:
+        _ZeugVarMeta.__name__ = _ZeugVarMeta.__qualname__ = cls.__name__
+    else:
+        _ZeugVarMeta.__name__ = _ZeugVarMeta.__qualname__ = f"zeugvar_{id(mgr):x}"
+    return cast(_T, _ZeugVarMeta())
 
 
 proxy = zeugvar
