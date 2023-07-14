@@ -5,7 +5,7 @@ A simple & straight-forward Python library for creating common variables
 
 (C) bswck, 2023
 """
-
+import operator
 from collections.abc import Callable
 from contextlib import suppress
 from functools import partial
@@ -207,7 +207,7 @@ def commonvar(
         __gt__ = descriptor()
         __ge__ = descriptor()
         __hash__ = descriptor()
-        __bool__ = descriptor(undefined=lambda: False)
+        __bool__ = descriptor(undefined=lambda: False, fallback=operator.truth)
         __getattr__ = descriptor()
         __setattr__ = descriptor()
         __delattr__ = descriptor()

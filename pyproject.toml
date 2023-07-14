@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "commonvars"
-version = "0.2.7"
+version = "0.2.8"
 description = "A simple & straight-forward Python module for creating context-dependent proxy objects."
 authors = ["bswck <bswck.dev@gmail.com>"]
 readme = "README.md"
