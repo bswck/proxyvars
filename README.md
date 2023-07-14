@@ -8,10 +8,10 @@ The following example shows how to use `commonvars` with `contextvars`:
 
 ```python
 >>> from contextvars import ContextVar
->>> from commonvars import proxy
+>>> from commonvars import commonvar
 ...
 >>> count_var = ContextVar("count_var")
->>> count = proxy(counter, int)
+>>> count = commonvar(counter, int)
 ...
 >>> count
 <unbound 'int' object>
