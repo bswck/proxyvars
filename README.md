@@ -11,7 +11,7 @@ The following example shows how to use `commonvars` with `contextvars`:
 >>> from commonvars import commonvar
 ...
 >>> count_var = ContextVar("count_var")
->>> count = commonvar(counter, int)
+>>> count = commonvar(count_var, int)
 ...
 >>> count
 <unbound 'int' object>
