@@ -5,6 +5,8 @@ A simple & straight-forward Python library for creating common variables
 
 (C) bswck, 2023
 """
+from __future__ import annotations
+
 import operator
 from collections.abc import Callable
 from contextlib import suppress
