@@ -26,6 +26,14 @@ repos:
     pass_filenames: false
 - repo: local
   hooks:
+  - id: pylint
+    name: Check Mypy
+    entry: mypy
+    args: [commonvars/, --strict]
+    language: system
+    pass_filenames: false
+- repo: local
+  hooks:
   - id: pytest-check
     name: PyTest Check
     entry: pytest
