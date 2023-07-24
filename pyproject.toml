@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "commonvars"
-version = "0.4.0"
+version = "0.2.8"
 description = "A simple & straight-forward Python module for creating context-dependent proxy objects."
 authors = ["bswck <bswck.dev@gmail.com>"]
 readme = "README.md"
@@ -121,11 +121,6 @@ max-complexity = 12
   "PLR2004", # Magic value used in comparison, consider replacing {value} with a constant variable
   "PT011", # {exc} is to broad
 ]
-
-[[tool.poetry_bumpversion.replacements]]
-files = ["pyproject.toml"]
-search = 'version = "{current_version}"'
-replace = 'version = "{new_version}"'
 
 [[tool.poetry_bumpversion.replacements]]
 files = ["README.md"]
