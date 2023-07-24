@@ -1,13 +1,13 @@
 [tool.poetry]
 name = "commonvars"
-version = "0.2.8"
+version = "0.4.0"
 description = "A simple & straight-forward Python module for creating context-dependent proxy objects."
 authors = ["bswck <bswck.dev@gmail.com>"]
 readme = "README.md"
 homepage = "https://github.com/bswck/commonvars"
 
 [tool.poetry.dependencies]
-python = "^3.9"
+python = "^3.8"
 
 
 [tool.poetry.group.dev.dependencies]
@@ -19,6 +19,7 @@ pytest = "^7.4.0"
 pytest-lazy-fixture = "^0.6.3"
 pre-commit = "^3.3.3"
 pylint = "^2.17.4"
+nox = "^2023.4.22"
 
 [build-system]
 requires = ["poetry-core"]
@@ -120,3 +121,13 @@ max-complexity = 12
   "PLR2004", # Magic value used in comparison, consider replacing {value} with a constant variable
   "PT011", # {exc} is to broad
 ]
+
+[[tool.poetry_bumpversion.replacements]]
+files = ["pyproject.toml"]
+search = 'version = "{current_version}"'
+replace = 'version = "{new_version}"'
+
+[[tool.poetry_bumpversion.replacements]]
+files = ["README.md"]
+search = 'commonvars v{current_version}'
+replace = 'commonvars v{new_version}'

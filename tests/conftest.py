@@ -1,7 +1,7 @@
-import pytest
-
 from contextvars import ContextVar
 from math import inf
+
+import pytest
 
 from commonvars import commonvar
 

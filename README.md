@@ -1,4 +1,4 @@
-## `commonvars`
+## `commonvars v0.2.8`
 
 A simple & straight-forward Python library for creating type-safe, context-dependent proxy objects.
 
