@@ -18,6 +18,14 @@ repos:
     name: Reformatting with Black
 - repo: local
   hooks:
+  - id: pylint
+    name: Check Pylint
+    entry: pylint
+    args: [commonvars/]
+    language: system
+    pass_filenames: false
+- repo: local
+  hooks:
   - id: pytest-check
     name: PyTest Check
     entry: pytest
