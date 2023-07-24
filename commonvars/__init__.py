@@ -26,7 +26,7 @@ class Manager(Protocol[_T]):
     Matches `contextvars.ContextVar`.
     """
 
-    def get(self) -> _T:  # type: ignore
+    def get(self) -> _T:
         """Get the current value of the manager.
 
         Raises
