@@ -17,7 +17,7 @@ jobs:
     - name: Install dependencies
       run: |
         python -m pip install --upgrade pip
-        pip install black mypy pylint pytest pytest-lazy-fixture
+        pip install -r requirements-dev.txt
     - name: Type-check with mypy
       run: >-
         mypy commonvars/ --strict
@@ -29,4 +29,4 @@ jobs:
         pylint commonvars/
     - name: Run tests
       run: >-
-        pytest tests/
+        pytest -v tests/

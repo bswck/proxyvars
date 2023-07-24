@@ -58,15 +58,15 @@ def release(session: nox.Session) -> None:
             external=True,
         )
     except CommandFailed:
-        session.log(f"Failed to create {new_version} tag.")
+        session.log(f"Failed to create {new_version} tag, probably already exists.")
     session.log("Pushing local tags...")
     session.run("git", "push", "--tags", external=True)
 
     session.run("git", "diff", external=True)
     commit_confirm = (
         input(
-            "You are about to commit auto-changed files, see the diff view above. "
-            "Are you sure? [y/n]: "
+            "You are about to commit auto-changed files due to version upgrade, "
+            "see the diff view above. Are you sure? [y/n]: "
         )
         .casefold()
         .strip()

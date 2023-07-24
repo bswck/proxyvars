@@ -1,3 +1,6 @@
 [*.py]
 max_line_length = 88
 end_of_line = lf
+
+[*.yml]
+tab_width = 2

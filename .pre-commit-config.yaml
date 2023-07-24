@@ -1,10 +1,21 @@
 repos:
 - repo: https://github.com/pre-commit/pre-commit-hooks
-  rev: v2.3.0
+  rev: 'v4.4.0'
   hooks:
   - id: check-yaml
-  - id: end-of-file-fixer
+    name: Check YAML files
   - id: trailing-whitespace
+    name: Trim Trailing Whitespaces
+- repo: https://github.com/python-poetry/poetry
+  rev: '1.5.0'
+  hooks:
+  - id: poetry-check
+    name: Check Poetry environment
+  - id: poetry-lock
+    name: Lock Dependencies with Poetry
+  - id: poetry-export
+    name: Export Dev Dependencies with Poetry
+    args: ["--with=dev", "-f", "requirements.txt", "-o", "requirements-dev.txt"]
 - repo: local
   hooks:
   - id: isort
@@ -12,11 +23,12 @@ repos:
     entry: isort
     language: system
 - repo: https://github.com/psf/black
-  rev: 22.10.0
+  rev: '23.7.0'
   hooks:
   - id: black
     name: Reformatting with Black
-- repo: local
+- repo: https://github.com/pylint-dev/pylint/
+  rev: 'v3.0.0a6'
   hooks:
   - id: pylint
     name: Check Pylint
@@ -24,9 +36,10 @@ repos:
     args: [commonvars/]
     language: system
     pass_filenames: false
-- repo: local
+- repo: https://github.com/pre-commit/mirrors-mypy
+  rev: 'v1.4.1'
   hooks:
-  - id: pylint
+  - id: mypy
     name: Check Mypy
     entry: mypy
     args: [commonvars/, --strict]
