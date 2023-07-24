@@ -11,11 +11,12 @@ import operator
 from collections.abc import Callable
 from contextlib import suppress
 from functools import partial
-from typing import Any, Protocol, TypeVar, cast, runtime_checkable
+from typing import Any, Protocol, TypeVar, cast, overload, runtime_checkable
 
 __all__ = ("commonvar", "proxy")
 
 _T = TypeVar("_T")
+_MISSING = object()
 
 
 @runtime_checkable
@@ -25,7 +26,7 @@ class Manager(Protocol[_T]):
     Matches `contextvars.ContextVar`.
     """
 
-    def get(self) -> _T:
+    def get(self) -> _T:  # type: ignore
         """Get the current value of the manager.
 
         Raises
@@ -34,7 +35,7 @@ class Manager(Protocol[_T]):
             If no object is bound to the manager.
         """
 
-    def set(self, value: _T) -> Any:
+    def set(self, value: _T, /) -> Any:
         """Set the current value of the manager."""
 
 
@@ -79,6 +80,7 @@ def commonvar_descriptor(
 
     class _ZeugVarDescriptor:
         attr_name: str
+        predefined_attr: Any = _MISSING
 
         def __init__(self) -> None:
             self.attr_name = None  # type: ignore[assignment]
@@ -86,38 +88,46 @@ def commonvar_descriptor(
         def __set_name__(self, owner: type[_T], name: str) -> None:
             self.attr_name = name
 
-        def __get__(self, instance: _T, owner: type[_T] | None) -> Any:
             if self.attr_name == "__getattr__":
 
-                def attribute(name: str) -> Any:
+                def predefined_getattr(name: str) -> Any:
                     return getattr(getter(mgr), name)
 
-            elif self.attr_name in ("__repr__", "__str__"):
-                with suppress(RuntimeError):
-                    return getattr(getter(mgr), self.attr_name)
+                self.predefined_attr = predefined_getattr
 
-                def attribute() -> str:  # type: ignore[misc]
+            elif self.attr_name in ("__repr__", "__str__"):
+
+                def predefined_repr() -> str:
                     if cls is None:
                         return "<unbound commonvar>"
                     return f"<unbound {cls.__name__!r} object>"
 
+                self.predefined_attr = predefined_repr
+
+        def __get__(self, instance: _T, owner: type[_T] | None) -> Any:
+            if self.attr_name in ("__repr__", "__str__"):
+                with suppress(RuntimeError):
+                    return getattr(getter(mgr), self.attr_name)
+
+            if self.predefined_attr is not _MISSING:
+                return self.predefined_attr
+
+            try:
+                obj = getter(mgr)
+            except RuntimeError:
+                if callable(undefined):
+                    attribute = undefined
+
+                else:
+                    raise
             else:
                 try:
-                    obj = getter(mgr)
-                except RuntimeError:
-                    if callable(undefined):
-                        attribute = undefined
-
-                    else:
+                    attribute = getattr(obj, self.attr_name)
+                except AttributeError:
+                    if not callable(fallback):
                         raise
-                else:
-                    try:
-                        attribute = getattr(obj, self.attr_name)
-                    except AttributeError:
-                        if not callable(fallback):
-                            raise
 
-                        attribute = partial(fallback, obj)
+                    attribute = partial(fallback, obj)
 
             if inplace:
 
@@ -158,8 +168,8 @@ def _cv_setter(mgr: Manager[_T], value: _T) -> None:
 def commonvar(
     mgr: Manager[_T],
     cls: type[_T] | None = None,
-    getter: Callable[[Manager[_T]], _T] = None,  # type: ignore[assignment]
-    setter: Callable[[Manager[_T], _T], None] = None,  # type: ignore[assignment]
+    getter: Callable[[Manager[_T]], _T] | None = None,
+    setter: Callable[[Manager[_T], _T], None] | None = None,
 ) -> _T:
     """Create a common variable, i.e. a proxy object.
 
@@ -185,17 +195,19 @@ def commonvar(
 
     if getter is None:
         getter = _cv_getter
+    getter_func = getter
 
     if setter is None:
         setter = _cv_setter
+    setter_func = setter
 
     if cls is None:
         with suppress(RuntimeError):
-            cls = type(getter(mgr))
+            cls = type(getter_func(mgr))
 
-    descriptor = partial(commonvar_descriptor, cls, mgr, getter, setter)
+    descriptor = partial(commonvar_descriptor, cls, mgr, getter_func, setter_func)
 
-    class _CommonVarMeta:
+    class _CommonVarClass:  # pylint: disable=too-few-public-methods
         __doc__ = descriptor()
         __wrapped__ = descriptor()
         __repr__ = descriptor()
@@ -267,7 +279,7 @@ def commonvar(
         __ifloordiv__ = descriptor(fallback=_op_fallback("__floordiv__"), inplace=True)
         __imod__ = descriptor(fallback=_op_fallback("__mod__"), inplace=True)
         __ipow__ = descriptor(fallback=_op_fallback("__pow__"), inplace=True)
-        __ilshift__ = descriptor(fallback=_op_fallback("__lshift_"), inplace=True)
+        __ilshift__ = descriptor(fallback=_op_fallback("__lshift__"), inplace=True)
         __irshift__ = descriptor(fallback=_op_fallback("__rshift__"), inplace=True)
         __iand__ = descriptor(fallback=_op_fallback("__and__"), inplace=True)
         __ixor__ = descriptor(fallback=_op_fallback("__xor__"), inplace=True)
@@ -295,10 +307,10 @@ def commonvar(
         __deepcopy__ = descriptor()
 
     if cls is not None:
-        _CommonVarMeta.__name__ = _CommonVarMeta.__qualname__ = cls.__name__
+        _CommonVarClass.__name__ = _CommonVarClass.__qualname__ = cls.__name__
     else:
-        _CommonVarMeta.__name__ = _CommonVarMeta.__qualname__ = f"commonvar_{id(mgr):x}"
-    return cast(_T, _CommonVarMeta())
+        _CommonVarClass.__name__ = _CommonVarClass.__qualname__ = f"commonvar_{id(mgr):x}"
+    return cast(_T, _CommonVarClass())
 
 
 proxy = commonvar
