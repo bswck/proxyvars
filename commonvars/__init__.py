@@ -309,7 +309,9 @@ def commonvar(
     if cls is not None:
         _CommonVarClass.__name__ = _CommonVarClass.__qualname__ = cls.__name__
     else:
-        _CommonVarClass.__name__ = _CommonVarClass.__qualname__ = f"commonvar_{id(mgr):x}"
+        _CommonVarClass.__name__ = (
+            _CommonVarClass.__qualname__
+        ) = f"commonvar_{id(mgr):x}"
     return cast(_T, _CommonVarClass())
 
 
