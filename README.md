@@ -91,7 +91,7 @@ Or by directly specifying it in the configuration like so:
 
 ```toml
 [tool.poetry.dependencies]
-"commonvars" = "^0.2.0"
+"commonvars" = "^0.3.0"
 ```
 
 Alternatively, you can add it directly from the source:
