@@ -1,0 +1,28 @@
+repos:
+- repo: https://github.com/pre-commit/pre-commit-hooks
+  rev: v2.3.0
+  hooks:
+  - id: check-yaml
+  - id: end-of-file-fixer
+  - id: trailing-whitespace
+- repo: local
+  hooks:
+  - id: isort
+    name: Sort Imports
+    entry: isort
+    language: system
+- repo: https://github.com/psf/black
+  rev: 22.10.0
+  hooks:
+  - id: black
+    name: Reformatting with Black
+- repo: local
+  hooks:
+  - id: pytest-check
+    name: PyTest Check
+    entry: pytest
+    args: [tests/]
+    language: system
+    pass_filenames: false
+    always_run: true
+    stages: [push]
