@@ -26,5 +26,5 @@ jobs:
         pylint commonvars/
     - name: Runnings tests
       run: >-
-        pytest commonvars/
+        pytest tests/
   
