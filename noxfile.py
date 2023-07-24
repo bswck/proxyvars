@@ -49,7 +49,13 @@ def release(session: nox.Session) -> None:
     session.log(f"Creating {new_version} tag...")
     try:
         session.run(
-            "git", "tag", "-a", new_version, "-m", f"Release {new_version}", external=True
+            "git",
+            "tag",
+            "-a",
+            new_version,
+            "-m",
+            f"Release {new_version}",
+            external=True,
         )
     except CommandFailed:
         session.log(f"Failed to create {new_version} tag.")
