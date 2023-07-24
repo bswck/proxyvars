@@ -58,7 +58,7 @@ The `Manager` object must have `get` and `set` methods. The `get` method returns
 the object to which the would forward attribute access. The `set` method sets it, obviously.
 `set` is called when the proxy is being inplace modified, for example within the `+=` reassigning operator.
 The class parameter is optional, but it is strongly recommended for some corner-cases.
-The user might provide custom `getter` and `setter` functions that change the way 
+The user might provide custom `getter` and `setter` functions that change the way
 `Manager.get()` and `Manage.set()` are called.
 This might be useful when there is the need to keep track of the tokens
 returned by `ContextVar.set()`, if using `ContextVar` as the manager.
