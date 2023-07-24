@@ -1,4 +1,5 @@
 import argparse
+
 import nox
 
 
@@ -25,9 +26,7 @@ def release(session: nox.Session) -> None:
 
     # If we get here, we should be good to go
     # Let's do a final check for safety
-    confirm = input(
-        f"You are about to bump the {version!r} version. Are you sure? [y/n]: "
-    )
+    confirm = input(f"You are about to bump the {version!r} version. Are you sure? [y/n]: ")
 
     # Abort on anything other than 'y'
     if confirm.lower().strip() != "y":
