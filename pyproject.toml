@@ -9,7 +9,6 @@ homepage = "https://github.com/bswck/commonvars"
 [tool.poetry.dependencies]
 python = "^3.8"
 
-
 [tool.poetry.group.dev.dependencies]
 mypy = "^1.4.1"
 ruff = "^0.0.275"
@@ -28,8 +27,8 @@ build-backend = "poetry.core.masonry.api"
 
 # Black section
 [tool.black]
-line-length = 88 # Must be same as tool.ruff.line-length
-target-version = ['py39']
+line-length = 88          # Must be same as tool.ruff.line-length
+target-version = ['py38']
 
 [tool.coverage.run]
 omit = ['*tests*']
@@ -38,92 +37,58 @@ omit = ['*tests*']
 ignore_errors = true
 
 [tool.ruff]
-# Exclude a variety of commonly ignored directories.
-exclude = [".git", "build", "dist", "var", "share", "collections"]
-line-length = 100 # Must be same as tool.black.line-length
-# Assume Python 3.9
-target-version = "py39"
-# Enable
-select = [
-    # "E", # Pycodestyle Error
-  "F", # Pyflakes
-  "W", # Pycodestyle Warning
-  # "C90", # mccabe
-  # "I", # isort
-  # "D", # Pydocstyle
-  # "YTT", # flake8-2020
-  # "ANN", # flake8-annotations
-  # "S", # flake8-bandit
-  # "BLE", # flake8-blind-except
-  # "B", # flake8-bugbear
-  "A", # flake8-builtins
-  # "C4", # flake8-comprehensions
-  # "EM", # flake8-errmsg
-  # "ISC", # flake8-implicit-str-concat
-  # "ICN", # flake8-import-conventions
-  # "PT", # flake8-pytest-style
-  # "RET", # flake8-return
-  # "SIM", # flake8-simplify
-  "PLC", # pylint
-  "PLE", # pylint
-  "PLR", # pylint
-  # "PLW", # pylint
-  # "PIE", # flake8-pie
-  # "RUF", # ruff specific
-]
-# Always autofix, but never try to fix `F401` (unused imports).
-fix = false #fix = true
+target-version = "py38"
+select = ["ALL"]
+# To discuss the presented rationales, contact the author: @bswck.
 ignore = [
-  "A001", # A001 Variable `{name}` is shadowing a python builtin
-  "A002", # A002 Argument `{name}` is shadowing a python builtin
-  "A003", # Class attribute `{name}` is shadowing a python builtin"
-  "D203",
-  "D212",
-  "D107",
-  "PLR0912", # Too many branches
-  "PLR0911", # Too many return statements
-  "PLR0913", # Too many arguments to function call
-  "PLR0915", # Too many statements
-  "PLR2004", # Magic value used in comparison, consider replacing {v} with a constant variable
+  # Description: Class attribute is shadowing a Python builtin
+  # Rationale: The library itself is quite hackish, so it's fine.
+  "A003",
+
+  # Description: Missing type annotation for self in method
+  # Rationale: It is mostly redundant, as is for ANN102.
+  "ANN101",
+
+  # Description: Missing type annotation for cls in method
+  # Rationale: It is mostly redundant, as is for ANN101.
+  "ANN102",
+
+  # Description: Dynamically typed expressions (typing.Any) are disallowed
+  # Rationale:
+  #  The library is meant to operate on many dynamic objects.
+  #  When it is possible, use object instead of Any when typing only-input values
+  #  whose extra (to the object class) methods are not used.
+  "ANN401",
+
+  # Description: Function is too complex (14 > 10)
+  # Rationale:
+  #  Too complex functions very often are unimprovable without sacrificing readability.
+  #  This rule is disabled for now, but might be enabled in the future.
+  "C901",
+
+  # Description: `inplace=True` should be avoided; it has inconsistent behavior
+  # Rationale:
+  #   Sure, but we're not using pandas and the keyword argument
+  #   is encapsulated in the library.
+  "PD002",
+
+  # Description: Too many arguments to function call
+  # Rationale: This is often intentional and improves readability. Disabled for now.
+  "PLR0913",
 ]
-unfixable = ["F401"]
+# Always be careful. Use with caution.
+fix = false
+exclude = ["examples/", "tests/"]
+
+[tool.isort]
+profile = "black"
 
 [tool.ruff.flake8-quotes]
 docstring-quotes = "double"
 
 [tool.ruff.pydocstyle]
-convention = "google"
+convention = "numpy"
 
-[tool.ruff.mccabe]
-max-complexity = 12
-
-[tool.ruff.per-file-ignores]
-"*/migrations/*.py" = [
-  "D100", # Missing docstring in public module
-  "D101", # Missing docstring in public class
-  "D102", # Missing docstring in public method
-  "D103", # Missing docstring in public function
-  "D104", # Missing docstring in public package
-]
-"cmibs/*.py" = [
-  "D100", # Missing docstring in public module
-  "D101", # Missing docstring in public class
-  "D102", # Missing docstring in public method
-  "D103", # Missing docstring in public function
-  "D104", # Missing docstring in public package
-]
-"tests/*.py" = [
-  "D100", # Missing docstring in public module
-  "D101", # Missing docstring in public class
-  "D102", # Missing docstring in public method
-  "D103", # Missing docstring in public function
-  "D104", # Missing docstring in public package
-  "S101", # Use of assert detected
-  "PLR2004", # Magic value used in comparison, consider replacing {value} with a constant variable
-  "PT011", # {exc} is to broad
-]
-
-[[tool.poetry_bumpversion.replacements]]
-files = ["README.md"]
-search = 'commonvars v{current_version}'
-replace = 'commonvars v{new_version}'
+[tool.poetry_bumpversion.file."README.md"]
+search = 'commonvars `v{current_version}`'
+replace = 'commonvars `v{new_version}`'

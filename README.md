@@ -1,4 +1,4 @@
-## `commonvars v0.3.0`
+## commonvars `v0.3.0`
 
 A simple & straight-forward Python library for creating type-safe, context-dependent proxy objects.
 
@@ -59,7 +59,7 @@ the object to which the would forward attribute access. The `set` method sets it
 `set` is called when the proxy is being inplace modified, for example within the `+=` reassigning operator.
 The class parameter is optional, but it is strongly recommended for some corner-cases.
 The user might provide custom `getter` and `setter` functions that change the way
-`Manager.get()` and `Manage.set()` are called.
+`Manager.get()` and `Manager.set()` are called.
 This might be useful when there is the need to keep track of the tokens
 returned by `ContextVar.set()`, if using `ContextVar` as the manager.
 
@@ -79,7 +79,7 @@ You could use `commonvars` when...
 $ pip install commonvars
 ```
 
-### poetry
+### [poetry](https://python-poetry.org/)
 
 You can add `commonvars` as a dependency with the following command:
 
@@ -91,7 +91,7 @@ Or by directly specifying it in the configuration like so:
 
 ```toml
 [tool.poetry.dependencies]
-"commonvars" = "^0.3.0"
+"commonvars" = "^0.4.0"
 ```
 
 Alternatively, you can add it directly from the source:
