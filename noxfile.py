@@ -106,7 +106,7 @@ def release(session: nox.Session) -> None:
             "-a",
             new_version,
             "-m",
-            f"Release `{new_version}`",
+            f"Release {new_version}",
             external=True,
         )
     except CommandFailed:
