@@ -78,7 +78,7 @@ ignore = [
 ]
 # Always be careful. Use with caution.
 fix = false
-exclude = ["examples/", "tests/"]
+exclude = ["noxfile.py", "tests/"]
 
 [tool.isort]
 profile = "black"
