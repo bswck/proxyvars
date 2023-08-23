@@ -8,12 +8,23 @@ A simple & straight-forward Python library for creating common variables
 from __future__ import annotations
 
 import operator
-from collections.abc import Callable
 from contextlib import suppress
 from functools import partial
-from typing import Any, Protocol, TypeVar, cast, overload, runtime_checkable
+from typing import (
+    TYPE_CHECKING,
+    Any,
+    Generic,
+    Protocol,
+    TypeVar,
+    cast,
+    runtime_checkable,
+)
 
-__all__ = ("commonvar", "proxy")
+if TYPE_CHECKING:
+    from collections.abc import Callable
+
+
+__all__ = ("commonvar", "proxy", "AttributeDelegateManager")
 
 _T = TypeVar("_T")
 _MISSING = object()
@@ -131,7 +142,7 @@ def commonvar_descriptor(
 
             if inplace:
 
-                def _apply_inplace(*args: Any, **kwargs: Any) -> _T:
+                def _apply_inplace(*args: object, **kwargs: object) -> _T:
                     ret = attribute(*args, **kwargs)
                     setter(mgr, ret)
                     return instance
@@ -139,7 +150,7 @@ def commonvar_descriptor(
                 return _apply_inplace
             return attribute
 
-        def __set__(self, instance: _T, value: Any) -> None:
+        def __set__(self, instance: _T, value: object) -> None:
             setattr(getter(mgr), self.attr_name, value)
 
         def __delete__(self, instance: _T) -> None:
@@ -155,8 +166,11 @@ def _op_fallback(op_name: str) -> Callable[[Any, Any], Any]:
 def _cv_getter(mgr: Manager[_T]) -> _T:
     try:
         obj = mgr.get()
-    except LookupError:
-        msg = f"No object in {mgr}"
+    except LookupError as exc:
+        note = ""
+        if exc.args:
+            note = f" ({exc.args[0]})"
+        msg = f"No object in {mgr!r}{note}"
         raise RuntimeError(msg) from None
     return obj
 
@@ -171,7 +185,8 @@ def commonvar(
     getter: Callable[[Manager[_T]], _T] | None = None,
     setter: Callable[[Manager[_T], _T], None] | None = None,
 ) -> _T:
-    """Create a common variable, i.e. a proxy object.
+    """
+    Create a common variable, i.e. a proxy object.
 
     Parameters
     ----------
@@ -190,7 +205,6 @@ def commonvar(
     proxy
         A proxy object.
     """
-
     # pylint: disable=too-many-statements
 
     if getter is None:
@@ -316,3 +330,25 @@ def commonvar(
 
 
 proxy = commonvar
+
+
+class AttributeDelegateManager(Generic[_T]):
+    """Manager for common variable attribute-dependent common variables."""
+
+    def __init__(self, common: object, attribute: str) -> None:
+        """Initialize the delegate."""
+        super().__init__()
+        self.common = common
+        self.attribute = attribute
+
+    def get(self) -> _T:
+        """Get the current value."""
+        try:
+            return cast(_T, getattr(self.common, self.attribute))
+        except AttributeError as exc:
+            msg = f"No attribute {self.attribute!r} in {self.common!r}"
+            raise LookupError(msg) from exc
+
+    def set(self, value: _T, /) -> None:
+        """Get the current value."""
+        setattr(self.common, self.attribute, value)
