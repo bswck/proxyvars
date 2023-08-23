@@ -20,10 +20,10 @@ jobs:
         pip install -r requirements-dev.txt
     - name: Check with black
       run: >-
-        black --check configzen/
+        black --check commonvars/
     - name: Analyse the code with pylint
       run: >-
-        pylint configzen/ --fail-under=9
+        pylint commonvars/ --fail-under=9
     - name: Analyse the code with ruff
       run: >-
-        ruff configzen/
+        ruff commonvars/

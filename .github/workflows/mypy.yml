@@ -20,4 +20,4 @@ jobs:
         pip install -r requirements-dev.txt
     - name: Type-check with mypy
       run: >-
-        mypy configzen/ --strict || (echo yes | mypy --install-types && mypy configzen/ --strict)
+        mypy commonvars/ --strict || (echo yes | mypy --install-types && mypy commonvars/ --strict)
