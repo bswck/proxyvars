@@ -244,7 +244,7 @@ def commonvar(
             __class__ = descriptor()
         else:
             __dir__ = descriptor(undefined=lambda: dir(cls))
-            __class__ = descriptor(undefined=lambda: cls)
+            __class__ = descriptor(undefined=cls)
         __call__ = descriptor()
         __instancecheck__ = descriptor()
         __subclasscheck__ = descriptor()
