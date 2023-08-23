@@ -1,36 +1,24 @@
-name: Deploy to PyPI
+name: Publish to PyPI (via Trusted Publisher, poetry)
 
 on:
   release:
     types: [published]
 
 jobs:
-  deploy:
+  release:
     runs-on: ubuntu-latest
+    environment: release
+    permissions:
+      id-token: write
     env:
       POETRY_VIRTUALENVS_CREATE: "false"
     steps:
       - uses: actions/checkout@v3
-
       - name: Install poetry
         run: |
           pipx install poetry
-          pipx inject poetry .
-
-      # NOTE: Instead of above step use the following in your workflow
-      # - name: Install poetry
-      #   run: |
-      #     pipx install poetry
-      #     pipx inject poetry poetry-bumpversion
-
-      - name: Build
+      - name: Build with poetry
         run: |
-          poetry version ${{ github.ref_name }}
           poetry build
-
-      - name: Publish
-        run: |
-          poetry config pypi-token.pypi ${{ secrets.PYPI_API_TOKEN }}
-          poetry publish
-
-      # NOTE: Make sure you have added PYPI_API_TOKEN repository secret
+      - name: Publish package distributions to PyPI
+        uses: pypa/gh-action-pypi-publish@release/v1

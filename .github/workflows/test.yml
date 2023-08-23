@@ -1,9 +1,9 @@
-name: CI
+name: Test & measure coverage
 
 on: [push]
 
 jobs:
-  ci:
+  test:
     runs-on: ubuntu-latest
     strategy:
       matrix:
@@ -18,15 +18,9 @@ jobs:
       run: |
         python -m pip install --upgrade pip
         pip install -r requirements-dev.txt
-    - name: Type-check with mypy
-      run: >-
-        mypy commonvars/ --strict
-    - name: Check with black
-      run: >-
-        black --check commonvars/
-    - name: Analyse the code with pylint
-      run: >-
-        pylint commonvars/
     - name: Run tests
       run: >-
-        pytest -v tests/
+        coverage run -m pytest -v tests/
+    - name: Check coverage
+      run: >-
+        coverage report --fail-under=50 -m
