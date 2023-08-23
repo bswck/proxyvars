@@ -1,4 +1,4 @@
-## commonvars `v0.4.1`
+## commonvars `v0.4.2`
 
 A simple & straight-forward Python library for creating type-safe, context-dependent proxy objects.
 
@@ -91,7 +91,7 @@ Or by directly specifying it in the configuration like so:
 
 ```toml
 [tool.poetry.dependencies]
-"commonvars" = "^0.4.1"
+"commonvars" = "^0.4.2"
 ```
 
 Alternatively, you can add it directly from the source:
