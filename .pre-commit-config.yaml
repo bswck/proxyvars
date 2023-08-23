@@ -26,16 +26,10 @@ repos:
         name: Lock Dependencies with Poetry
         stages: [push]
       - id: poetry-export
-        name: Export Dependencies with Poetry
-        args:
-          ["--without=dev", "-f", "requirements.txt", "-o", "requirements.txt"]
-        stages: [push]
-      - id: poetry-export
         name: Export Dev Dependencies with Poetry
         args:
           [
             "--with=dev",
-            "--extras=all",
             "-f",
             "requirements.txt",
             "-o",
