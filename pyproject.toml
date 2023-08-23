@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "commonvars"
-version = "0.4.0"
+version = "0.4.1"
 description = "A simple & straight-forward Python module for creating context-dependent proxy objects."
 authors = ["bswck <bswck.dev@gmail.com>"]
 readme = "README.md"
@@ -25,7 +25,10 @@ coverage = "^7.3.0"
 requires = ["poetry-core"]
 build-backend = "poetry.core.masonry.api"
 
-# Black section
+[tool.poetry_bumpversion.file."README.md"]
+search = 'commonvars `v{current_version}`'
+replace = 'commonvars `v{new_version}`'
+
 [tool.black]
 line-length = 88          # Must be same as tool.ruff.line-length
 target-version = ['py38']
@@ -88,7 +91,3 @@ docstring-quotes = "double"
 
 [tool.ruff.pydocstyle]
 convention = "numpy"
-
-[tool.poetry_bumpversion.file."README.md"]
-search = 'commonvars `v{current_version}`'
-replace = 'commonvars `v{new_version}`'
