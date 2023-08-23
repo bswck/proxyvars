@@ -20,6 +20,7 @@ pytest-lazy-fixture = "^0.6.3"
 pre-commit = "^3.3.3"
 pylint = "^2.17.4"
 nox = "^2023.4.22"
+coverage = "^7.3.0"
 
 [build-system]
 requires = ["poetry-core"]
