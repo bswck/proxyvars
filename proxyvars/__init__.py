@@ -1,6 +1,5 @@
-"""`proxyvars`.
-
-A simple & straight-forward Python library for proxy objects.
+"""
+proxyvars - a simple and straight-forward Python library for proxy objects.
 
 (C) bswck, 2023
 """
@@ -514,22 +513,22 @@ def proxy_field_accessor(
         Each item in the path can be either a string (for attribute access)
         or a custom object (for item access).
         This behavior that treats strings specially might be customized
-        by passing custom `field_item_get` and `field_item_overwrite` functions.
+        by passing custom `field_get_state` and `field_overwrite_state` functions.
 
         For example, the path `("a", 0, "b")` would be equivalent to
         `proxy_var.a[0].b`. To change it the behavior to `proxy_var["a"][0]["b"]`,
         simply use `proxy_item_accessor` directly
-        or  pass `field_item_get=lambda o, f: o[f]`
-        and `field_item_overwrite=lambda o, f, v: o.__setitem__(o, f, v)`
+        or  pass `field_get_state=lambda o, f: o[f]`
+        and `field_overwrite_state=lambda o, f, v: o.__setitem__(o, f, v)`
         to this function.
     proxy_var
         The proxy object to be accessed.
     cls
         The class of the object to be proxied.
-    proxy_field_get_state
+    field_get_state
         A callable that gets a field from an object.
         Defaults to `getattr` for strings and `.__getitem__()` otherwise.
-    proxy_field_overwrite_state
+    field_overwrite_state
         A callable that overwrites a field of an object.
         Defaults to `setattr` for strings and `.__setitem__()` otherwise.
     proxy_base_cls
