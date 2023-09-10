@@ -1,1 +1,1 @@
-## proxyvars `v0.1.0`
+## proxyvars `v0.5.0`
