@@ -71,32 +71,40 @@ def release(session: nox.Session) -> None:
         ).strip()
     )
 
-    session.run("git", "diff", external=True)
-    commit_confirm = (
-        (
-            input(
-                "You are about to commit auto-changed files due to version upgrade, "
-                "see the diff view above. Are you sure? (y/n) [y]: ",
+    files_changed_for_release = session.run(
+        *"git diff --name-only HEAD".split(),
+        silent=True,
+        external=True,
+    )
+    if files_changed_for_release:
+        session.run("git", "diff", external=True)
+        commit_confirm = (
+            (
+                input(
+                    "You are about to commit and push auto-changed files due "
+                    "to version upgrade, see the diff view above. "
+                    "Are you sure? (y/n) [y]: ",
+                )
+                .casefold()
+                .strip()
             )
-            .casefold()
-            .strip()
-        )
-        or "y"
-    )[0]
+            or "y"
+        )[0]
 
-    if commit_confirm == "y":
-        session.run(
-            "git",
-            "commit",
-            "-am",
-            f"Release `{new_version}`",
-            external=True,
-        )
-        session.run("git", "push", external=True)
-    else:
-        session.error(
-            "Changes made uncommitted. Commit your unrelated changes and try again.",
-        )
+        if commit_confirm == "y":
+            session.run(
+                "git",
+                "commit",
+                "-am",
+                f"Release `{new_version}`",
+                external=True,
+            )
+            session.run("git", "push", external=True)
+        else:
+            session.error(
+                "Changes made uncommitted. "
+                "Commit your unrelated changes and try again.",
+            )
 
     session.log(f"Creating {new_version} tag...")
     try:
