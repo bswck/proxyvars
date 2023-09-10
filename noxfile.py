@@ -5,11 +5,11 @@ import nox
 from nox.command import CommandFailed
 
 
-@nox.session
+@nox.session()
 def release(session: nox.Session) -> None:
     """
-    Kicks off an automated release process by updating local files,
-    creating and pushing a new tag.
+    Kick off an automated release process by updating local files,
+    creating and pushing a new tag. The actual release is made via GitHub Actions.
 
     Usage:
     $ nox -s release -- [major|minor|patch|<major>.<minor>.<patch>]
