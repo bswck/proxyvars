@@ -28,32 +28,12 @@ __all__ = (
     "const_proxy",
     "lookup_proxy",
     "proxy_field_accessor",
+    "proxy_item_accessor",
+    "proxy_attribute_accessor",
 )
 
 _T = TypeVar("_T")
 _MISSING = object()
-
-
-@runtime_checkable
-class ProxyStateLookup(Protocol[_T]):
-    """
-    A protocol for objects that can be used to lookup the state of a proxy every time
-    it is accessed.
-
-    If the state lookup fails, a `LookupError` must be raised.
-    It is then converted to `MissingStateError` and handled by the proxy instance,
-    which might be finally propagated to the caller.
-
-    Note
-    ----
-    All `contextvars.ContextVar` objects are valid proxy state lookups.
-    """
-
-    def get(self) -> _T:
-        """Get the current state of the proxy."""
-
-    def set(self, value: _T, /) -> Any:
-        """Overwrite the current state of the proxy."""
 
 
 class MissingStateError(RuntimeError):
@@ -400,6 +380,28 @@ def const_proxy(
         # important: respect the descriptor nature of __class__
         cls=state.__class__,
     )
+
+
+@runtime_checkable
+class ProxyStateLookup(Protocol[_T]):
+    """
+    A protocol for objects that can be used to lookup the state of a proxy every time
+    it is accessed.
+
+    If the state lookup fails, a `LookupError` must be raised.
+    It is then converted to `MissingStateError` and handled by the proxy instance,
+    which might be finally propagated to the caller.
+
+    Note
+    ----
+    All `contextvars.ContextVar` objects are valid proxy state lookups.
+    """
+
+    def get(self) -> _T:
+        """Get the current state of the proxy."""
+
+    def set(self, value: _T, /) -> Any:
+        """Overwrite the current state of the proxy."""
 
 
 def _lookup_proxy_get_state(state_lookup: ProxyStateLookup[_T]) -> _T:
