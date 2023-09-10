@@ -20,10 +20,10 @@ jobs:
         pip install -r requirements-dev.txt
     - name: Check with black
       run: >-
-        black --check commonvars/
+        black --check .
     - name: Analyse the code with pylint
       run: >-
-        pylint commonvars/ --fail-under=9
+        pylint proxyvars/ --fail-under=9
     - name: Analyse the code with ruff
       run: >-
-        ruff commonvars/
+        ruff .

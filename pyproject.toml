@@ -1,10 +1,10 @@
 [tool.poetry]
-name = "commonvars"
-version = "0.4.2"
+name = "proxyvars"
+version = "0.1.0"
 description = "A simple & straight-forward Python module for creating context-dependent proxy objects."
 authors = ["bswck <bswck.dev@gmail.com>"]
 readme = "README.md"
-homepage = "https://github.com/bswck/commonvars"
+homepage = "https://github.com/bswck/proxyvars"
 
 [tool.poetry.dependencies]
 python = "^3.8"
@@ -69,11 +69,9 @@ ignore = [
   #  This rule is disabled for now, but might be enabled in the future.
   "C901",
 
-  # Description: `inplace=True` should be avoided; it has inconsistent behavior
-  # Rationale:
-  #   Sure, but we're not using pandas and the keyword argument
-  #   is encapsulated in the library.
-  "PD002",
+  # Description: 1 blank line required between summary line and description
+  # Rationale: Our summaries can be multiline.
+  "D205",
 
   # Description: Too many arguments to function call
   # Rationale: This is often intentional and improves readability. Disabled for now.
@@ -91,3 +89,7 @@ docstring-quotes = "double"
 
 [tool.ruff.pydocstyle]
 convention = "numpy"
+
+[tool.mypy]
+strict = true
+exclude = ["noxfile.py", "tests/"]
