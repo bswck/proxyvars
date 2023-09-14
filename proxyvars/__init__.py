@@ -338,19 +338,23 @@ def _const_proxy_get_state_weak(weak_ref: weakref.ReferenceType[_T]) -> _T:
 
 
 def const_proxy(
-    state: _T,
+    state: object,
+    cls: type[_T],
     *,
     proxy_base_cls: type[object] = object,
     weak: bool = False,
     weakref_callback: Callable[[object], None] | None = None,
 ) -> _T:
     """
-    Create a proxy object guaranteed to always refer to the same state object.
+    Create a proxy object that cheats class/instance checks with the given cls
+    and is guaranteed to refer to a state object with identical ID.
 
     Parameters
     ----------
     state
-        The constant state of the proxy.
+        The state of the proxy to point to.
+    cls
+        The class of the object to cheat class/instance checks with.
     proxy_base_cls
         The base class of the proxy object (default: `object`).
         This is useful if you want add custom descriptors to the result proxy object.
@@ -376,8 +380,7 @@ def const_proxy(
         get_state=get_state,
         overwrite_state=_const_proxy_overwrite_state,
         proxy_base_cls=proxy_base_cls,
-        # important: respect the descriptor nature of __class__
-        cls=state.__class__,
+        cls=cls,
     )
 
 
