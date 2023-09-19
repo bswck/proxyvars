@@ -169,7 +169,7 @@ def proxy(
         else:
             __doc__ = descriptor(class_value=__doc__ % {"cls_name": repr(cls.__name__)})
             __dir__ = descriptor(on_missing_state=lambda: dir(cls))
-            __class__ = descriptor(on_missing_state=cls)
+            __class__ = descriptor(implementation=cls)
         __wrapped__ = descriptor()
         __repr__, __str__ = [
             descriptor(
