@@ -19,7 +19,7 @@ from typing import (
 )
 
 if TYPE_CHECKING:
-    from collections.abc import Callable
+    from collections.abc import Callable, Mapping
 
 
 __all__ = (
@@ -150,6 +150,8 @@ def proxy(
     overwrite_state: Callable[[_T], None],
     cls: type[_T] | None = None,
     proxy_base_cls: type[object] = object,
+    proxy_metaclass: type[type] = type,
+    namespace_overwrites: Mapping[str, object] | None = None,
 ) -> _T:
     """
     Create a proxy object.
@@ -165,12 +167,25 @@ def proxy(
     proxy_base_cls
         The base class of the proxy object (default: `object`).
         This is useful if you want add custom descriptors to the result proxy object.
+    proxy_metaclass
+        The metaclass of the proxy object (default: `type`).
+        This is useful if you want add custom descriptors to the result proxy object.
+    namespace_overwrites
+        A mapping of attribute names to values that the namespace
+        of the Proxy class will be updated with before the class's creation.
     """
     # pylint: disable=too-many-statements
     descriptor = partial(proxy_descriptor, get_state, overwrite_state)
 
     # pylint: disable=too-few-public-methods
-    class Proxy(proxy_base_cls):  # type: ignore[misc,valid-type]
+    class Proxy(
+        proxy_base_cls,  # type: ignore[misc,valid-type]
+        metaclass=lambda name, bases, namespace: proxy_metaclass(  # type: ignore[misc]
+            name,
+            bases,
+            {**namespace, **(namespace_overwrites or {})},
+        ),
+    ):
         """
         A class whose instance proxies %(cls_name)s.
 
@@ -357,6 +372,8 @@ def const_proxy(
     cls: type[_T],
     *,
     proxy_base_cls: type[object] = object,
+    proxy_metaclass: type[type] = type,
+    namespace_overwrites: Mapping[str, object] | None = None,
     weak: bool = False,
     weakref_callback: Callable[[object], None] | None = None,
 ) -> _T:
@@ -378,6 +395,12 @@ def const_proxy(
     weakref_callback
         A callback that is called when the weak reference to the state is about
         to expire. See the `weakref.ref` documentation for details.
+    proxy_metaclass
+        The metaclass of the proxy object (default: `type`).
+        This is useful if you want add custom descriptors to the result proxy object.
+    namespace_overwrites
+        A mapping of attribute names to values that the namespace
+        of the Proxy class will be updated with before the class's creation.
     """
     if weakref_callback and not weak:
         msg = "weakref_callback requires weak=True"
@@ -392,10 +415,12 @@ def const_proxy(
         get_state = partial(_const_proxy_get_state, state)
 
     return proxy(
+        cls=cls,
         get_state=get_state,
         overwrite_state=_const_proxy_overwrite_state,
         proxy_base_cls=proxy_base_cls,
-        cls=cls,
+        proxy_metaclass=proxy_metaclass,
+        namespace_overwrites=namespace_overwrites,
     )
 
 
@@ -448,6 +473,8 @@ def lookup_proxy(
     | None = None,
     *,
     proxy_base_cls: type[object] = object,
+    proxy_metaclass: type[type] = type,
+    namespace_overwrites: Mapping[str, object] | None = None,
 ) -> _T:
     """
     Create a proxy object that uses a `ProxyStateLookup` to lookup the state.
@@ -462,6 +489,12 @@ def lookup_proxy(
     proxy_base_cls
         The base class of the proxy object (default: `object`).
         This is useful if you want add custom descriptors to the result proxy object.
+    proxy_metaclass
+        The metaclass of the proxy object (default: `type`).
+        This is useful if you want add custom descriptors to the result proxy object.
+    namespace_overwrites
+        A mapping of attribute names to values that the namespace
+        of the Proxy class will be updated with before the class's creation.
     state_lookup_get_state
         A callable that returns the current state of the proxy.
         Defaults to `state_lookup.get`.
@@ -482,9 +515,11 @@ def lookup_proxy(
 
     return proxy(
         cls=cls,
-        proxy_base_cls=proxy_base_cls,
         get_state=get_state,
         overwrite_state=overwrite_state,
+        proxy_base_cls=proxy_base_cls,
+        proxy_metaclass=proxy_metaclass,
+        namespace_overwrites=namespace_overwrites,
     )
 
 
@@ -518,6 +553,8 @@ def proxy_field_accessor(
         None,
     ] = _proxy_field_overwrite_state,
     proxy_base_cls: type[object] = object,
+    proxy_metaclass: type[type] = type,
+    namespace_overwrites: Mapping[str, object] | None = None,
 ) -> _T:
     """
     Create a proxy that accesses a (maybe nested) field of another proxy.
@@ -552,6 +589,12 @@ def proxy_field_accessor(
     proxy_base_cls
         The base class of the proxy object (default: `object`).
         This is useful if you want add custom descriptors to the result proxy object.
+    proxy_metaclass
+        The metaclass of the proxy object (default: `type`).
+        This is useful if you want add custom descriptors to the result proxy object.
+    namespace_overwrites
+        A mapping of attribute names to values that the namespace
+        of the Proxy class will be updated with before the class's creation.
     """
     if not path:
         msg = "proxy field path must not be empty"
@@ -567,7 +610,14 @@ def proxy_field_accessor(
             last_item = reduce(field_get_state, path_there, proxy_var)
         field_overwrite_state(last_item, last_field, state)
 
-    return proxy(get_state, overwrite_state, cls=cls, proxy_base_cls=proxy_base_cls)
+    return proxy(
+        get_state,
+        overwrite_state,
+        cls=cls,
+        proxy_base_cls=proxy_base_cls,
+        proxy_metaclass=proxy_metaclass,
+        namespace_overwrites=namespace_overwrites,
+    )
 
 
 def _proxy_item_get_state(
@@ -590,6 +640,8 @@ def proxy_item_accessor(
     proxy_var: object,
     cls: type[_T] | None = None,
     proxy_base_cls: type[object] = object,
+    proxy_metaclass: type[type] = type,
+    namespace_overwrites: Mapping[str, object] | None = None,
 ) -> _T:
     """
     Create a proxy that accesses a (maybe nested) item of another proxy.
@@ -613,6 +665,12 @@ def proxy_item_accessor(
     proxy_base_cls
         The base class of the proxy object (default: `object`).
         This is useful if you want add custom descriptors to the result proxy object.
+    proxy_metaclass
+        The metaclass of the proxy object (default: `type`).
+        This is useful if you want add custom descriptors to the result proxy object.
+    namespace_overwrites
+        A mapping of attribute names to values that the namespace
+        of the Proxy class will be updated with before the class's creation.
     """
     return proxy_field_accessor(
         *path,
@@ -621,6 +679,8 @@ def proxy_item_accessor(
         field_get_state=_proxy_field_get_state,
         field_overwrite_state=_proxy_field_overwrite_state,
         proxy_base_cls=proxy_base_cls,
+        proxy_metaclass=proxy_metaclass,
+        namespace_overwrites=namespace_overwrites,
     )
 
 
@@ -650,6 +710,8 @@ def proxy_attribute_accessor(
     proxy_var: object,
     cls: type[_T] | None = None,
     proxy_base_cls: type[object] = object,
+    proxy_metaclass: type[type] = type,
+    namespace_overwrites: Mapping[str, object] | None = None,
 ) -> _T:
     """
     Create a proxy that accesses a (maybe nested) attribute of another proxy.
@@ -676,6 +738,12 @@ def proxy_attribute_accessor(
     proxy_base_cls
         The base class of the proxy object (default: `object`).
         This is useful if you want add custom descriptors to the result proxy object.
+    proxy_metaclass
+        The metaclass of the proxy object (default: `type`).
+        This is useful if you want add custom descriptors to the result proxy object.
+    namespace_overwrites
+        A mapping of attribute names to values that the namespace
+        of the Proxy class will be updated with before the class's creation.
     """
     return proxy_field_accessor(
         *path,
@@ -684,4 +752,6 @@ def proxy_attribute_accessor(
         field_get_state=_proxy_attribute_get_state,
         field_overwrite_state=_proxy_attribute_overwrite_state,
         proxy_base_cls=proxy_base_cls,
+        proxy_metaclass=proxy_metaclass,
+        namespace_overwrites=namespace_overwrites,
     )
