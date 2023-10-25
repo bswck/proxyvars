@@ -130,6 +130,21 @@ def _binary_op_use_instead(
     return lambda state, operand: getattr(state, operator_name)(operand)
 
 
+def _try_classgetitem(
+    cls: type[_T],
+    name: str,
+) -> object:
+    if not isinstance(cls, type):
+        msg = f"{cls!r} object has no attribute '__class_getitem__'"
+        raise AttributeError(msg)  # noqa: TRY004
+    try:
+        class_getitem = cls.__class_getitem__  # type: ignore[attr-defined]
+    except AttributeError:
+        msg = f"{cls!r} is not generic (does not support class-item access)"
+        raise TypeError(msg) from None
+    return class_getitem(name)
+
+
 def proxy(
     get_state: Callable[..., _T],
     overwrite_state: Callable[[_T], None],
@@ -204,7 +219,7 @@ def proxy(
         __subclasscheck__ = descriptor()
         __len__ = descriptor()
         __length_hint__ = descriptor()
-        __getitem__ = descriptor()
+        __getitem__ = descriptor(on_attribute_error=_try_classgetitem)
         __setitem__ = descriptor()
         __delitem__ = descriptor()
         __iter__ = descriptor()
