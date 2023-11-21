@@ -2,13 +2,13 @@
 # (C) 2023–present Bartosz Sławecki (bswck)
 #
 # Sync with bswck/skeleton.
-# This script was adopted from https://github.com/bswck/skeleton/tree/ceda47c/project/scripts/sync.sh.jinja
+# This script was adopted from https://github.com/bswck/skeleton/tree/338b77f/project/scripts/sync.sh.jinja
 #
 # Usage:
 # $ poe sync
 
 
-# Automatically copied from https://github.com/bswck/skeleton/tree/ceda47c/handle-task-event.sh
+# Automatically copied from https://github.com/bswck/skeleton/tree/338b77f/handle-task-event.sh
 
 toggle_workflows() {
     # Toggle workflows depending on the project's settings
@@ -24,12 +24,17 @@ determine_project_path() {
     PROJECT_PATH=$(redis-cli get "$PROJECT_PATH_KEY")
 }
 
+ensure_github_environment() {
+    # Ensure that the GitHub environment exists
+    jq -n '{"deployment_branch_policy": {"protected_branches": false, "custom_branch_policies": true}}'|gh api -H "Accept: application/vnd.github+json" -X PUT "/repos/bswck/proxyvars/environments/$1" --input - | grep ''
+}
+
 supply_smokeshow_key() {
     # Supply smokeshow key to the repository
     # This is not sufficient and will become a GitHub action:
     # https://github.com/bswck/supply-smokeshow-key
     echo "Checking if smokeshow secret needs to be created..."
-    gh api --method POST -H "Accept: application/vnd.github+json" "/repos/bswck/proxyvars/environments/Smokeshow"
+    ensure_github_environment "Smokeshow"
     if test "$(gh secret list -e Smokeshow | grep -o SMOKESHOW_AUTH_KEY)"
     then
         echo "Smokeshow secret already exists, aborting." && return 0
@@ -55,7 +60,7 @@ determine_new_ref() {
 
 before_update_algorithm() {
     # Stash changes if any
-    if test "$(git diff --name-only | grep ".*")"
+    if test "$(git diff --name-only | grep "")"
     then
         echo "There are uncommitted changes in the project."
         git stash push --message "Stash before syncing with gh:bswck/skeleton"
@@ -105,7 +110,7 @@ after_update_algorithm() {
 }
 
 main() {
-    export LAST_REF="ceda47c"
+    export LAST_REF="338b77f"
     export PROJECT_PATH_KEY="$$_skeleton_project_path"
     export NEW_REF_KEY="$$_skeleton_new_ref"
     export LAST_LICENSE_NAME="MIT"
