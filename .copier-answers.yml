@@ -9,7 +9,7 @@ main_branch: master
 package_name: proxyvars
 project_description: A simple and straight-forward Python module for creating context-dependent
     proxy objects.
-project_version: 0.8.0
+project_version: 0.8.1
 publish_on_pypi: true
 pypi_project_description: A simple and straight-forward Python module for creating
     context-dependent proxy objects.

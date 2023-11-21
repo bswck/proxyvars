@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "proxyvars"
-version = "0.8.0"
+version = "0.8.1"
 description = "A simple and straight-forward Python module for creating context-dependent proxy objects."
 authors = ["bswck <bswck.dev@gmail.com>"]
 license = "MIT"
