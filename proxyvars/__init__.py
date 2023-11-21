@@ -194,13 +194,13 @@ def proxy(
 
         if cls is None:
             __doc__ = descriptor(  # noqa: A003
-                class_value=__doc__ % {"cls_name": "other object"}
+                class_value=__doc__ % {"cls_name": "other object"},
             )
             __dir__ = descriptor()
             __class__ = descriptor()
         else:
             __doc__ = descriptor(  # noqa: A003
-                class_value=__doc__ % {"cls_name": repr(cls.__name__)}
+                class_value=__doc__ % {"cls_name": repr(cls.__name__)},
             )
             __dir__ = descriptor(on_missing_state=lambda: dir(cls))
             __class__ = descriptor(implementation=cls)
