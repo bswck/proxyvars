@@ -2,13 +2,13 @@
 # (C) 2023–present Bartosz Sławecki (bswck)
 #
 # Sync with bswck/skeleton.
-# This script was adopted from https://github.com/bswck/skeleton/tree/1f3cab2/project/scripts/sync.sh.jinja
+# This script was adopted from https://github.com/bswck/skeleton/tree/ceda47c/project/scripts/sync.sh.jinja
 #
 # Usage:
 # $ poe sync
 
 
-# Automatically copied from https://github.com/bswck/skeleton/tree/1f3cab2/handle-task-event.sh
+# Automatically copied from https://github.com/bswck/skeleton/tree/ceda47c/handle-task-event.sh
 
 toggle_workflows() {
     # Toggle workflows depending on the project's settings
@@ -29,6 +29,7 @@ supply_smokeshow_key() {
     # This is not sufficient and will become a GitHub action:
     # https://github.com/bswck/supply-smokeshow-key
     echo "Checking if smokeshow secret needs to be created..."
+    gh api --method POST -H "Accept: application/vnd.github+json" "/repos/bswck/proxyvars/environments/Smokeshow"
     if test "$(gh secret list -e Smokeshow | grep -o SMOKESHOW_AUTH_KEY)"
     then
         echo "Smokeshow secret already exists, aborting." && return 0
@@ -104,7 +105,7 @@ after_update_algorithm() {
 }
 
 main() {
-    export LAST_REF="1f3cab2"
+    export LAST_REF="ceda47c"
     export PROJECT_PATH_KEY="$$_skeleton_project_path"
     export NEW_REF_KEY="$$_skeleton_new_ref"
     export LAST_LICENSE_NAME="MIT"
