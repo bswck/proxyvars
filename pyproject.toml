@@ -3,93 +3,82 @@ name = "proxyvars"
 version = "0.8.0"
 description = "A simple and straight-forward Python module for creating context-dependent proxy objects."
 authors = ["bswck <bswck.dev@gmail.com>"]
+license = "MIT"
 readme = "README.md"
-homepage = "https://github.com/bswck/proxyvars"
+packages = [{ include = "proxyvars/" }]
 
 [tool.poetry.dependencies]
 python = "^3.8"
 
 [tool.poetry.group.dev.dependencies]
-mypy = "^1.4.1"
-ruff = "^0.0.275"
-isort = "^5.12.0"
-black = "^23.3.0"
-pytest = "^7.4.0"
-pytest-lazy-fixture = "^0.6.3"
-pre-commit = "^3.3.3"
-pylint = "^2.17.4"
-nox = "^2023.4.22"
-coverage = "^7.3.0"
+mypy = "^1.7.0"
+ruff = "^0.1.2"
+pytest = "^7.4.3"
+coverage = "^7.3.2"
+pre-commit = "^3.5.0"
+poethepoet = "^0.24.3"
 
-[build-system]
-requires = ["poetry-core"]
-build-backend = "poetry.core.masonry.api"
+smokeshow = "^0.4.0"
 
-[tool.poetry_bumpversion.file."README.md"]
-search = '{current_version}'
-replace = '{new_version}'
 
-[tool.black]
-line-length = 88          # Must be same as tool.ruff.line-length
-target-version = ['py38']
-
-[tool.coverage.run]
-omit = ['*tests*']
-
-[tool.coverage.report]
-ignore_errors = true
+[tool.poe.tasks]
+test = "pytest -v"
+lock = "scripts/lock.sh"
+sync = "scripts/sync.sh"
+skeleton.script = "scripts.skeleton:main"
+release.script = "scripts.release:main"
 
 [tool.ruff]
-target-version = "py38"
+exclude = ["tests/", "scripts/"]
+# To discuss the presented rationales, contact the author (bswck).
 select = ["ALL"]
-# To discuss the presented rationales, contact the author: @bswck.
 ignore = [
-  # Description: Class attribute is shadowing a Python builtin
-  # Rationale: The library itself is quite hackish, so it's fine.
-  "A003",
+    # Description: Missing type annotation for self in method
+    # Rationale: It is mostly redundant, as is for ANN102.
+    "ANN101",
 
-  # Description: Missing type annotation for self in method
-  # Rationale: It is mostly redundant, as is for ANN102.
-  "ANN101",
+    # Description: Missing type annotation for cls in method
+    # Rationale: It is mostly redundant, as is for ANN101.
+    "ANN102",
 
-  # Description: Missing type annotation for cls in method
-  # Rationale: It is mostly redundant, as is for ANN101.
-  "ANN102",
+    # Description: Dynamically typed expressions (typing.Any) are disallowed
+    # Rationale:
+    #  We use Any to allow user to constrain return types of our functions on their own.
+    #  For example, having a function `def foo() -> Any: ...` allows user to write
+    #  `my_foo: int = foo()` and have it passed type checking, since `Any` disables
+    #  type checking completely.
+    "ANN401",
 
-  # Description: Dynamically typed expressions (typing.Any) are disallowed
-  # Rationale:
-  #  The library is meant to operate on many dynamic objects.
-  #  When it is possible, use object instead of Any when typing only-input values
-  #  whose extra (to the object class) methods are not used.
-  "ANN401",
+    # Description: 1 blank line required before class docstring
+    # Rationale: Remove the warning -- D211 (no-blank-line-before-class) preferred.
+    "D203",
 
-  # Description: Function is too complex (14 > 10)
-  # Rationale:
-  #  Too complex functions very often are unimprovable without sacrificing readability.
-  #  This rule is disabled for now, but might be enabled in the future.
-  "C901",
-
-  # Description: 1 blank line required between summary line and description
-  # Rationale: Our summaries can be multiline.
-  "D205",
-
-  # Description: Too many arguments to function call
-  # Rationale: This is often intentional and improves readability. Disabled for now.
-  "PLR0913",
+    # Description: Multi-line docstring summary should start at the second line
+    # Rationale: Remove the warning -- D213 (multi-line-summary-second-line) preferred.
+    "D212",
 ]
-# Always be careful. Use with caution.
-fix = false
-exclude = ["noxfile.py", "tests/"]
+
+[tool.mypy]
+strict = true
 
 [tool.isort]
 profile = "black"
 
-[tool.ruff.flake8-quotes]
-docstring-quotes = "double"
+[[tool.poetry_bumpversion.replacements]]
+files = ["./README.md"]
 
-[tool.ruff.pydocstyle]
-convention = "numpy"
+[tool.coverage.report]
+omit = ["tests/*"]
+# fail_under = 96
+exclude_lines = [
+    # Be sure to include lines that are not meant to be covered
+    # by tests or encountered by the users at runtime.
+    "raise NotImplementedError",          # Do not cover abstract methods.
+    "if ((t|typing)\\.?)?TYPE_CHECKING:", # Do not cover type checking imports.
+    "@((t|typing)\\.?)?overload",         # Do not cover overload definitions.
+    "\\(((t|typing)\\.?)?Protocol\\):$",  # Do not cover entire protocol definitions.
+]
 
-[tool.mypy]
-strict = true
-exclude = ["noxfile.py", "tests/"]
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
