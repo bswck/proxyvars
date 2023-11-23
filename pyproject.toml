@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "proxyvars"
-version = "0.8.1"
+version = "0.0.1"
 description = "A simple and straight-forward Python module for creating context-dependent proxy objects."
 authors = ["bswck <bswck.dev@gmail.com>"]
 license = "MIT"
@@ -15,18 +15,15 @@ mypy = "^1.7.0"
 ruff = "^0.1.2"
 pytest = "^7.4.3"
 coverage = "^7.3.2"
-pre-commit = "^3.5.0"
 poethepoet = "^0.24.3"
-
+pre-commit = "^3.5.0"
 smokeshow = "^0.4.0"
 pytest-lazy-fixture = "^0.6.3"
-
 
 [tool.poe.tasks]
 test = "pytest -v"
 lock = "scripts/lock.sh"
 sync = "scripts/sync.sh"
-skeleton.script = "scripts.skeleton:main"
 release.script = "scripts.release:main"
 
 [tool.ruff]
@@ -64,9 +61,6 @@ strict = true
 
 [tool.isort]
 profile = "black"
-
-[[tool.poetry_bumpversion.replacements]]
-files = ["./README.md"]
 
 [tool.coverage.report]
 omit = ["tests/*"]

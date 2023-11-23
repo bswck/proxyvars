@@ -2,13 +2,15 @@
 # (C) 2023–present Bartosz Sławecki (bswck)
 #
 # Sync with bswck/skeleton.
-# This script was adopted from https://github.com/bswck/skeleton/tree/338b77f/project/scripts/sync.sh.jinja
+# This script was adopted from https://github.com/bswck/skeleton/tree/7fee354/project/scripts/sync.sh.jinja
 #
 # Usage:
 # $ poe sync
 
+# shellcheck disable=SC2005
 
-# Automatically copied from https://github.com/bswck/skeleton/tree/338b77f/handle-task-event.sh
+
+# Automatically copied from https://github.com/bswck/skeleton/tree/7fee354/handle-task-event.sh
 
 toggle_workflows() {
     # Toggle workflows depending on the project's settings
@@ -26,15 +28,13 @@ determine_project_path() {
 
 ensure_github_environment() {
     # Ensure that the GitHub environment exists
-    jq -n '{"deployment_branch_policy": {"protected_branches": false, "custom_branch_policies": true}}'|gh api -H "Accept: application/vnd.github+json" -X PUT "/repos/bswck/proxyvars/environments/$1" --input - | grep ''
+    echo "$(jq -n '{"deployment_branch_policy": {"protected_branches": false, "custom_branch_policies": true}}'|gh api -H "Accept: application/vnd.github+json" -X PUT "/repos/bswck/proxyvars/environments/$1" --input -)" > /dev/null 2>&1 || return 1
 }
 
 supply_smokeshow_key() {
     # Supply smokeshow key to the repository
-    # This is not sufficient and will become a GitHub action:
-    # https://github.com/bswck/supply-smokeshow-key
     echo "Checking if smokeshow secret needs to be created..."
-    ensure_github_environment "Smokeshow"
+    ensure_github_environment "Smokeshow" || echo "Failed to create smokeshow environment." 1>&2 && return 1
     if test "$(gh secret list -e Smokeshow | grep -o SMOKESHOW_AUTH_KEY)"
     then
         echo "Smokeshow secret already exists, aborting." && return 0
@@ -60,7 +60,7 @@ determine_new_ref() {
 
 before_update_algorithm() {
     # Stash changes if any
-    if test "$(git diff --name-only | grep "")"
+    if test "$(echo "$(git diff --name-only)")"
     then
         echo "There are uncommitted changes in the project."
         git stash push --message "Stash before syncing with gh:bswck/skeleton"
@@ -72,7 +72,7 @@ before_update_algorithm() {
 
 run_update_algorithm() {
     # Run the underlying update algorithm
-    copier update --trust --vcs-ref "${1:-"HEAD"}"
+    copier update --trust --vcs-ref "${1:-"HEAD"}" "${@:2}" || return 1
     determine_new_ref
     determine_project_path
 }
@@ -99,6 +99,15 @@ after_update_algorithm() {
             local COMMIT_MSG="Upgrade to bswck/skeleton of unknown revision"
         fi
     fi
+    while test "$(echo "$(git diff --check)")"
+    do
+        echo "Cannot commit with the following conflicts:"
+        echo "$(git diff --check)"
+        echo "Please resolve the conflicts and press Enter to continue."
+        read -r
+    done
+    redis-cli del "$PROJECT_PATH_KEY" > /dev/null 2>&1
+    redis-cli del "$NEW_REF_KEY" > /dev/null 2>&1
     git commit --no-verify -m "$COMMIT_MSG" -m "$REVISION_PARAGRAPH"
     git push --no-verify
     toggle_workflows
@@ -110,7 +119,7 @@ after_update_algorithm() {
 }
 
 main() {
-    export LAST_REF="338b77f"
+    export LAST_REF="7fee354"
     export PROJECT_PATH_KEY="$$_skeleton_project_path"
     export NEW_REF_KEY="$$_skeleton_new_ref"
     export LAST_LICENSE_NAME="MIT"
@@ -121,13 +130,13 @@ main() {
     echo
     echo "UPDATE ROUTINE [1/3]: Running pre-update hooks."
     echo "[---------------------------------------------]"
-    before_update_algorithm
+    before_update_algorithm || exit 1
     echo "[---------------------------------------------]"
     echo "UPDATE ROUTINE [1/3] COMPLETE. ✅"
     echo
     echo "UPDATE ROUTINE [2/3]: Running the underlying update algorithm."
     echo "[------------------------------------------------------------]"
-    run_update_algorithm "$@"
+    run_update_algorithm "$@" || exit 1
     echo "[------------------------------------------------------------]"
     echo "UPDATE ROUTINE [2/3] COMPLETE. ✅"
     echo
@@ -143,9 +152,6 @@ main() {
     echo
     echo "Your repository is now up to date with this bswck/skeleton revision:"
     echo "https://github.com/bswck/skeleton/tree/${NEW_REF:-"HEAD"}"
-
-    redis-cli del "$PROJECT_PATH_KEY" > /dev/null 2>&1
-    redis-cli del "$NEW_REF_KEY" > /dev/null 2>&1
 }
 
 main "$@"
