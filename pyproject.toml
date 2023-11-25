@@ -54,6 +54,10 @@ ignore = [
     # Description: Multi-line docstring summary should start at the second line
     # Rationale: Remove the warning -- D213 (multi-line-summary-second-line) preferred.
     "D212",
+
+    # Description: Too many arguments in function definition
+    # Rationale: There is no way to avoid this without losing configurability.
+    "PLR0913",
 ]
 
 [tool.mypy]
