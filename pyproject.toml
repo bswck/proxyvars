@@ -62,6 +62,7 @@ ignore = [
 
 [tool.mypy]
 strict = true
+exclude = ["tests/"]
 
 [tool.isort]
 profile = "black"
