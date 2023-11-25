@@ -39,7 +39,7 @@ class MissingStateError(RuntimeError):
     """Raised when a proxy object is accessed without a state."""
 
 
-def proxy_descriptor(
+def proxy_descriptor(  # noqa: C901
     get_state: Callable[..., _T],
     overwrite_state: Callable[[_T], None],
     *,
@@ -382,8 +382,9 @@ def const_proxy(
     weakref_callback: Callable[[object], None] | None = None,
 ) -> _T:
     """
-    Create a proxy object that cheats class/instance checks with the given cls
-    and is guaranteed to refer to a state object with identical ID.
+    Create a proxy object that cheats class/instance checks with the given cls.
+
+    This proxy is guaranteed to refer to a state object with a constant ID.
 
     Parameters
     ----------
@@ -431,8 +432,7 @@ def const_proxy(
 @runtime_checkable
 class ProxyStateLookup(Protocol[_T]):
     """
-    A protocol for objects that can be used to lookup the state of a proxy every time
-    it is accessed.
+    A protocol for objects that looks up the state of a proxy every time it is accessed.
 
     If the state lookup fails, a `LookupError` must be raised.
     It is then converted to `MissingStateError` and handled by the proxy instance,
@@ -446,7 +446,7 @@ class ProxyStateLookup(Protocol[_T]):
     def get(self) -> _T:
         """Get the current state of the proxy."""
 
-    def set(self, value: _T, /) -> Any:
+    def set(self, value: _T, /) -> Any:  # noqa: A003
         """Overwrite the current state of the proxy."""
 
 
