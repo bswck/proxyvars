@@ -2,15 +2,15 @@
 # (C) 2023–present Bartosz Sławecki (bswck)
 #
 # Sync with bswck/skeleton.
-# This script was adopted from https://github.com/bswck/skeleton/tree/1e36d1d/project/scripts/sync.sh.jinja
+# This script was adopted from https://github.com/bswck/skeleton/tree/8f1cc90/project/scripts/sync.sh.jinja
 #
 # Usage:
-# $ poe sync
+# $ poe bump
 
 # shellcheck disable=SC2005
 
 
-# Automatically copied from https://github.com/bswck/skeleton/tree/1e36d1d/handle-task-event.sh
+# Automatically copied from https://github.com/bswck/skeleton/tree/8f1cc90/handle-task-event.sh
 
 toggle_workflows() {
     # Toggle workflows depending on the project's settings
@@ -47,8 +47,8 @@ supply_smokeshow_key() {
         echo "Failed to create smokeshow secret." 1>&2
     fi
 }
-
 # End of copied code
+
 
 determine_new_ref() {
     # Determine the new skeleton revision set by the child process
@@ -101,6 +101,9 @@ after_update_algorithm() {
     redis-cli del "$NEW_REF_KEY" > /dev/null 2>&1
     echo "Press ENTER to commit the changes or CTRL+C to abort."
     read -r || exit 1
+    
+    poetry run pre-commit uninstall
+    
     git commit --no-verify -m "$COMMIT_MSG" -m "$REVISION_PARAGRAPH"
     git push --no-verify
     toggle_workflows
@@ -112,7 +115,7 @@ after_update_algorithm() {
 }
 
 main() {
-    export LAST_REF="1e36d1d"
+    export LAST_REF="8f1cc90"
     export PROJECT_PATH_KEY="$$_skeleton_project_path"
     export NEW_REF_KEY="$$_skeleton_new_ref"
     export LAST_LICENSE_NAME="MIT"
