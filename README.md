@@ -14,43 +14,56 @@ As for now, the documentation is mostly in the codebase (check relevant docstrin
 If you want to…
 
 
+
 ## …use this tool in your project 💻
 You might simply install it with pip:
 
-    pip install proxyvars
+```shell
+pip install proxyvars
+```
 
 If you use [Poetry](https://python-poetry.org/), then run:
 
-    poetry add proxyvars
+```shell
+poetry add proxyvars
+```
 
 ## …contribute to [proxyvars](https://github.com/bswck/proxyvars) 🚀
-
-Happy to accept contributions!
 
 > [!Note]
 > If you use Windows, it is highly recommended to complete the installation in the way presented below through [WSL2](https://learn.microsoft.com/en-us/windows/wsl/install).
 
-First, [install Poetry](https://python-poetry.org/docs/#installation).<br/>
-Poetry is an amazing tool for managing dependencies & virtual environments, building packages and publishing them.
+1.  Fork the [proxyvars repository](https://github.com/bswck/proxyvars) on GitHub.
 
+2.  [Install Poetry](https://python-poetry.org/docs/#installation).<br/>
+    Poetry is an amazing tool for managing dependencies & virtual environments, building packages and publishing them.
+
+    ```shell
     pipx install poetry
+    ```
 
-<sub>If you encounter any problems, refer to [the official documentation](https://python-poetry.org/docs/#installation) for the most up-to-date installation instructions.</sub>
+    <sub>If you encounter any problems, refer to [the official documentation](https://python-poetry.org/docs/#installation) for the most up-to-date installation instructions.</sub>
 
-Be sure to have Python 3.8 installed—if you use [pyenv](https://github.com/pyenv/pyenv#readme), simply run:
+    Be sure to have Python 3.8 installed—if you use [pyenv](https://github.com/pyenv/pyenv#readme), simply run:
 
+    ```shell
     pyenv install 3.8
+    ```
 
-Then, run:
+3.  Clone your fork locally and install dependencies.
 
-    git clone https://github.com/bswck/proxyvars path/to/proxyvars
+    ```shell
+    git clone https://github.com/your-username/proxyvars path/to/proxyvars
     cd path/to/proxyvars
     poetry env use $(cat .python-version)
     poetry install
     poetry shell
     pre-commit install --hook-type pre-commit --hook-type pre-push
+    ```
 
+For more information on how to contribute, check out [CONTRIBUTING.md](https://github.com/bswck/proxyvars/blob/HEAD/CONTRIBUTING.md).<br/>
+Always happy to accept contributions! ❤️
 
 # Legal info
-© Copyright by Bartosz Sławecki ([@bswck](https://github.com/bswck)).<br />This software is licensed under the [MIT License](https://github.com/bswck/proxyvars/blob/main/LICENSE).
+© Copyright by Bartosz Sławecki ([@bswck](https://github.com/bswck)).<br />This software is licensed under the [MIT License](https://github.com/bswck/proxyvars/blob/HEAD/LICENSE).
 
