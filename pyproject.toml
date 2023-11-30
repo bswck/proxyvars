@@ -77,15 +77,13 @@ ignore = [
     # Rationale: Remove the warning -- D213 (multi-line-summary-second-line) preferred.
     "D212",
 
-<<<<<<< before updating
     # Description: Too many arguments in function definition
     # Rationale: There is no way to avoid this without losing configurability.
     "PLR0913",
-=======
+
     # Description: Line contains TODO, consider resolving the issue
     # Rationale: Not appropriate for the project.
     "FIX002",
->>>>>>> after updating
 ]
 
 [tool.mypy]
