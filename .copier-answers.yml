@@ -1,11 +1,11 @@
-_commit: 8f1cc90
+_commit: 5b68727
 _src_path: gh:bswck/skeleton
-author_full_name: Bartosz Sławecki
 author_username: bswck
 docs: true
 email_address: bswck.dev@gmail.com
 github_username: bswck
 license_name: MIT
+org_full_name: Bartosz Sławecki
 package_name: proxyvars
 project_description: A simple and straight-forward Python module for creating context-dependent
     proxy objects.

@@ -1,4 +1,4 @@
-# proxyvars [![Package version](https://img.shields.io/pypi/v/proxyvars?label=PyPI)](https://pypi.org/project/proxyvars) [![Supported Python versions](https://img.shields.io/pypi/pyversions/proxyvars.svg?logo=python&label=Python)](https://pypi.org/project/proxyvars)
+# proxyvars [![Package version](https://img.shields.io/pypi/v/proxyvars?label=PyPI)](https://pypi.org/project/proxyvars/) [![Supported Python versions](https://img.shields.io/pypi/pyversions/proxyvars.svg?logo=python&label=Python)](https://pypi.org/project/proxyvars/)
 [![Tests](https://github.com/bswck/proxyvars/actions/workflows/test.yml/badge.svg)](https://github.com/bswck/proxyvars/actions/workflows/test.yml)
 [![Coverage](https://coverage-badge.samuelcolvin.workers.dev/bswck/proxyvars.svg)](https://coverage-badge.samuelcolvin.workers.dev/redirect/bswck/proxyvars)
 [![Ruff](https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/astral-sh/ruff/main/assets/badge/v2.json)](https://github.com/astral-sh/ruff)
@@ -32,10 +32,9 @@ poetry add proxyvars
 
 > [!Note]
 > If you use Windows, it is highly recommended to complete the installation in the way presented below through [WSL2](https://learn.microsoft.com/en-us/windows/wsl/install).
-
 1.  Fork the [proxyvars repository](https://github.com/bswck/proxyvars) on GitHub.
 
-2.  [Install Poetry](https://python-poetry.org/docs/#installation).<br/>
+1.  [Install Poetry](https://python-poetry.org/docs/#installation).<br/>
     Poetry is an amazing tool for managing dependencies & virtual environments, building packages and publishing them.
 
     ```shell
@@ -49,8 +48,7 @@ poetry add proxyvars
     ```shell
     pyenv install 3.8
     ```
-
-3.  Clone your fork locally and install dependencies.
+1.  Clone your fork locally and install dependencies.
 
     ```shell
     git clone https://github.com/your-username/proxyvars path/to/proxyvars
@@ -60,10 +58,10 @@ poetry add proxyvars
     poetry shell
     pre-commit install --hook-type pre-commit --hook-type pre-push
     ```
-
 For more information on how to contribute, check out [CONTRIBUTING.md](https://github.com/bswck/proxyvars/blob/HEAD/CONTRIBUTING.md).<br/>
 Always happy to accept contributions! ❤️
 
-# Legal info
-© Copyright by Bartosz Sławecki ([@bswck](https://github.com/bswck)).<br />This software is licensed under the [MIT License](https://github.com/bswck/proxyvars/blob/HEAD/LICENSE).
 
+# Legal info
+© Copyright by Bartosz Sławecki ([@bswck](https://github.com/bswck)).
+<br />This software is licensed under the terms of [MIT License](https://github.com/bswck/proxyvars/blob/HEAD/LICENSE).

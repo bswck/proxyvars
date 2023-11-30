@@ -1,6 +1,6 @@
 site_name: "proxyvars"
 site_description: "A simple and straight-forward Python module for creating context-dependent proxy objects."
-site_url: "https://proxyvars.readthedocs.io/"
+site_url: "https://proxyvars.readthedocs.io/en/latest/"
 repo_url: "https://github.com/bswck/proxyvars"
 repo_name: "bswck/proxyvars"
 watch:
