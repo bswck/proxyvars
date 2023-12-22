@@ -1,9 +1,10 @@
 #!/usr/bin/env python
 # (C) 2023–present Bartosz Sławecki (bswck)
 #
-# Note:
-# If you want to change this file, you might want to do it at the infrastructure
-# level. See https://github.com/bswck/skeleton.
+# This file was generated from bswck/skeleton@61eeffb.
+# Instead of changing this particular file, you might want to alter the template:
+# https://github.com/bswck/skeleton/tree/61eeffb/project/scripts/release.py.jinja
+#
 """
 Automate the release process by updating local files, creating and pushing a new tag.
 
@@ -16,12 +17,13 @@ $ poe release [major|minor|patch|MAJOR.MINOR.PATCH]
 from __future__ import annotations
 
 import argparse
-import functools
 import logging
 import os
-import pathlib
 import subprocess
 import sys
+import tempfile
+from pathlib import Path
+
 
 _LOGGER = logging.getLogger("release")
 _EDITOR = os.environ.get("EDITOR", "vim")
@@ -51,13 +53,6 @@ def _ask_for_confirmation(msg: str, *, default: bool | None = None) -> bool:
     return answer[0] == "y"
 
 
-def _decode_if_bytes(value: bytes | str, /) -> str:
-    """Decode bytes to str."""
-    if isinstance(value, bytes):
-        return value.decode()
-    return value
-
-
 def _setup_logging() -> None:
     _LOGGER.setLevel(logging.INFO)
     _logger_handler = logging.StreamHandler()
@@ -65,16 +60,19 @@ def _setup_logging() -> None:
     _LOGGER.addHandler(_logger_handler)
 
 
+def _command(prompt: str, /) -> str:
+    """Run a command and return its output."""
+    return subprocess.getoutput(prompt)
+
+
+def _run(*prompt: str) -> None:
+    """Run a command, allowing it to take over the terminal."""
+    subprocess.run([*prompt], check=True)
+
+
 def release(version: str, /) -> None:
     """Release a semver version."""
-    cmd, shell = str.split, functools.partial(subprocess.run, check=True)
-
-    changed_files = _decode_if_bytes(
-        shell(
-            cmd("git diff --name-only HEAD"),
-            capture_output=True,
-        ).stdout
-    )
+    changed_files = _command("git status --porcelain")
 
     if changed_files:
         do_continue = _ask_for_confirmation(
@@ -94,40 +92,31 @@ def release(version: str, /) -> None:
     )
 
     if not do_release:
-        _abort(f"You said no when prompted to bump to the {version!r} version.")
+        _abort(f"You said no when prompted to upgrade to the {version!r} version.")
 
     _LOGGER.info("Bumping to the %r version", version)
+    _run("poetry", "version", version)
 
-    shell([*cmd("poetry version"), version])
-
-    new_version = "v" + (
-        _decode_if_bytes(
-            shell(
-                cmd("poetry version --short"),
-                capture_output=True,
-            ).stdout,
-        ).strip()
+    new_version = "v" + _command("poetry version --short").strip()
+    default_release_notes = _command(
+        f"towncrier build --draft --yes --version={new_version}"
     )
+    _command(f"towncrier build --yes --version={new_version}")
 
-    changed_for_release = _decode_if_bytes(
-        shell(
-            cmd("git diff --name-only HEAD"),
-            capture_output=True,
-        ).stdout
-    )
-
+    changed_for_release = _command("git status --porcelain")
     if changed_for_release:
-        shell(cmd("git diff"))
+        _run("git", "diff")
+
         do_commit = _ask_for_confirmation(
             "You are about to commit and push auto-changed files due "
-            "to version upgrade, see the diff view above. "
+            "to version upgrade, as in the diff view displayed just now. "
             "Are you sure?",
             default=True,
         )
 
         if do_commit:
-            shell([*cmd("git commit -am"), f"Release {new_version}"])
-            shell(cmd("git push"))
+            _run("git", "commit", "-am", f"Release {new_version}")
+            _run("git", "push")
         else:
             _abort(
                 "Changes made uncommitted. "
@@ -137,12 +126,12 @@ def release(version: str, /) -> None:
     _LOGGER.info("Creating %s tag...", new_version)
 
     try:
-        shell([*cmd("git tag -sa"), new_version, "-m", f"Release {new_version}"])
+        _run("git", "tag", "-sa", new_version, "-m", f"Release {new_version}")
     except subprocess.CalledProcessError:
         _abort(f"Failed to create {new_version} tag, probably already exists.")
     else:
         _LOGGER.info("Pushing local tags...")
-        shell(cmd("git push --tags"))
+        _run("git", "push", "--tags")
 
     do_release = _ask_for_confirmation(
         "Create a GitHub release now? GitHub CLI required.",
@@ -157,10 +146,14 @@ def release(version: str, /) -> None:
 
         if do_write_notes:
             notes_complete = False
+            release_notes = default_release_notes
+            temp_file = tempfile.NamedTemporaryFile(mode="w", delete=False)
+            temp_file.write(release_notes)
+            temp_file.close()
+
             while not notes_complete:
-                tmp_file = pathlib.Path(f".release-notes-{new_version}.txt")
-                shell(cmd(f"{_EDITOR} {tmp_file}"))
-                release_notes = tmp_file.read_text()
+                _run(_EDITOR, temp_file.name)
+                release_notes = Path(temp_file.name).read_text().strip()
                 print("Release notes:")
                 print(release_notes)
                 print()
@@ -169,14 +162,13 @@ def release(version: str, /) -> None:
                     default=True,
                 )
 
-            shell(
-                cmd(
-                    f"gh release create {new_version} --generate-notes "
-                    f"--notes-file {tmp_file}",
-                )
+            _run(
+                "gh", "release", "create", new_version, "--generate-notes",
+                "--notes-file", temp_file.name,
             )
+            os.unlink(temp_file.name)
         else:
-            shell(cmd(f"gh release create {new_version} --generate-notes"))
+            _run("gh", "release", "create", new_version, "--generate-notes")
 
 
 def main(argv: list[str] | None = None) -> None:
@@ -184,13 +176,8 @@ def main(argv: list[str] | None = None) -> None:
     _setup_logging()
 
     parser = argparse.ArgumentParser(description="Release a semver version.")
-    parser.add_argument(
-        "version",
-        type=str,
-        nargs=1,
-    )
-    args: argparse.Namespace = parser.parse_args(argv)
-    release(args.version.pop())
+    parser.add_argument("version", type=str)
+    release(*vars(parser.parse_args(argv)).values())
 
 
 if __name__ == "__main__":

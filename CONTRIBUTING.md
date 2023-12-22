@@ -1,7 +1,13 @@
+
+<!--
+This file was generated from bswck/skeleton@61eeffb.
+Instead of changing this particular file, you might want to alter the template:
+https://github.com/bswck/skeleton/tree/61eeffb/project/%23%25%20if%20docs%20%25%23docs%23%25%20endif%20%25%23/contributing.md.jinja
+-->
 # Contributing to [proxyvars](https://github.com/bswck/proxyvars) 🎉
 Contributions are very welcome. 🚀
 
-There are many ways to contribute, ranging from **writing tutorials and improving the documentation**, to **submitting bug reports and feature requests or writing code** which can be incorporated into **proxyvars**.
+There are many ways to contribute, ranging from **writing tutorials and improving the documentation**, to **submitting bug reports and feature requests** or **writing code** which can be incorporated into proxyvars.
 
 ## Report bugs and request features 🐛
 Report these in the [issue tracker](https://github.com/bswck/proxyvars/issues).
@@ -13,28 +19,49 @@ Anything tagged with "enhancement" is open to whoever wants to implement it.
 
 ## Write documentation 📖
 The project could always use more documentation, whether as part of the official project
-docs. If you're interested in helping out, check the [docs/](https://github.com/bswck/proxyvars/tree/HEAD/docs) folder in the repository.
+docs. If you're interested in helping out, check the [docs/](https://github.com/bswck/proxyvars/tree/HEAD/docs)
+folder in the repository.
 
 ## Share your feedback 🌍
 The best way to send feedback is to file an issue in the [issue tracker](https://github.com/bswck/proxyvars).
 
 If you are proposing a feature:
+
 -   Explain in detail how it would work.
 -   Keep the scope as narrow as possible, to make it easier to implement.
 -   Remember that this is a volunteer-driven project, and that contributions are
     welcome! ✨
 
-## Get started! 🕹️
+## Pull Request guidelines 📝
+1. Initially mark the PR as a draft, so that the maintainers know that you are making final touches.
+
+1. Ensure that the [test coverage](https://coverage-badge.samuelcolvin.workers.dev/redirect/bswck/proxyvars) is not decreased. If you add a new feature, please add tests for it. [Read more about coverage](https://coverage.readthedocs.io/en/latest/index.html).
+
+1. Ensure that all GitHub checks pass. If they are disabled in your PR, ping the maintainers to request enabling them.
+
+1. Don't forget to link the relevant issue(s) in the PR description and describe the changes you made.
+
+# Get started! 🕹️
 
 Ready to contribute? Here's a quick guide on how to set up proxyvars and make a change.
 
 
-> [!Note]
-> If you use Windows, it is highly recommended to complete the installation in the way presented below through [WSL2](https://learn.microsoft.com/en-us/windows/wsl/install).
+<!--
+This section was generated from bswck/skeleton@61eeffb.
+Instead of changing this particular file, you might want to alter the template:
+https://github.com/bswck/skeleton/tree/61eeffb/project/%23%25%20if%20docs%20%25%23docs%23%25%20endif%20%25%23/contributing.md.jinja
+-->
+
+!!! Note
+    If you use Windows, it is highly recommended to complete the installation in the way presented below through [WSL2](https://learn.microsoft.com/en-us/windows/wsl/install).
+
+
+
 1.  Fork the [proxyvars repository](https://github.com/bswck/proxyvars) on GitHub.
 
 1.  [Install Poetry](https://python-poetry.org/docs/#installation).<br/>
     Poetry is an amazing tool for managing dependencies & virtual environments, building packages and publishing them.
+    You might use [pipx](https://github.com/pypa/pipx#readme) to install it globally (recommended):
 
     ```shell
     pipx install poetry
@@ -47,6 +74,7 @@ Ready to contribute? Here's a quick guide on how to set up proxyvars and make a 
     ```shell
     pyenv install 3.8
     ```
+
 1.  Clone your fork locally and install dependencies.
 
     ```shell
@@ -54,9 +82,16 @@ Ready to contribute? Here's a quick guide on how to set up proxyvars and make a 
     cd path/to/proxyvars
     poetry env use $(cat .python-version)
     poetry install
+    ```
+
+    Next up, simply activate the virtual environment and install pre-commit hooks:
+
+    ```shell
     poetry shell
     pre-commit install --hook-type pre-commit --hook-type pre-push
     ```
+
+
 1.  Create a branch for local development:
 
     ```shell
@@ -81,9 +116,3 @@ Ready to contribute? Here's a quick guide on how to set up proxyvars and make a 
 
 1.  Submit a pull request through the GitHub website.
 
-
-## Pull Request guidelines 📝
-1. Initially mark the PR as a draft, so that the maintainers know that you are making final touches.
-2. Ensure that the [test coverage](https://coverage-badge.samuelcolvin.workers.dev/redirect/bswck/proxyvars) is not decreased. If you add a new feature, please add tests for it. [Read more about coverage](https://coverage.readthedocs.io/en/latest/index.html).
-3. Ensure that all GitHub checks pass. If they are disabled in your PR, ping the maintainers to request enabling them.
-4. Don't forget to link the relevant issue(s) in the PR description and describe the changes you made.

@@ -1,7 +1,8 @@
-_commit: e257d8b
+_commit: 61eeffb
 _src_path: gh:bswck/skeleton
 author_username: bswck
 docs: true
+docs_slug: proxyvars
 email_address: bswck.dev@gmail.com
 github_username: bswck
 license_name: MIT
@@ -15,6 +16,6 @@ pypi_project_description: A simple and straight-forward Python module for creati
 pypi_project_name: proxyvars
 python_version: '3.8'
 repo_name: proxyvars
-test_suite: true
+tests: true
 use_precommit: true
 visibility: public
