@@ -174,10 +174,8 @@ def proxy(
         A mapping of attribute names to values that the namespace
         of the Proxy class will be updated with before the class's creation.
     """
-    # pylint: disable=too-many-statements
     descriptor = partial(proxy_descriptor, get_state, overwrite_state)
 
-    # pylint: disable=too-few-public-methods
     class Proxy(
         proxy_base_cls,  # type: ignore[misc,valid-type]
         metaclass=lambda name, bases, namespace: proxy_metaclass(  # type: ignore[misc]
