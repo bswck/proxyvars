@@ -1,13 +1,15 @@
 
-# proxyvars [![skeleton](https://img.shields.io/badge/34cc9c6-skeleton?label=%F0%9F%92%80%20bswck/skeleton&labelColor=black&color=grey&link=https%3A//github.com/bswck/skeleton)](https://github.com/bswck/skeleton/tree/34cc9c6)
+# proxyvars [![skeleton](https://img.shields.io/badge/7935235-skeleton?label=%F0%9F%92%80%20bswck/skeleton&labelColor=black&color=grey&link=https%3A//github.com/bswck/skeleton)](https://github.com/bswck/skeleton/tree/7935235)
 [![Package version](https://img.shields.io/pypi/v/proxyvars?label=PyPI)](https://pypi.org/project/proxyvars/)
 [![Supported Python versions](https://img.shields.io/pypi/pyversions/proxyvars.svg?logo=python&label=Python)](https://pypi.org/project/proxyvars/)
 
 [![Tests](https://github.com/bswck/proxyvars/actions/workflows/test.yml/badge.svg)](https://github.com/bswck/proxyvars/actions/workflows/test.yml)
 [![Coverage](https://coverage-badge.samuelcolvin.workers.dev/bswck/proxyvars.svg)](https://coverage-badge.samuelcolvin.workers.dev/redirect/bswck/proxyvars)
+[![Documentation Status](https://readthedocs.org/projects/proxyvars/badge/?version=latest)](https://proxyvars.readthedocs.io/en/latest/?badge=latest)
+[![License](https://img.shields.io/github/license/bswck/proxyvars.svg?label=License)](https://github.com/bswck/proxyvars/blob/HEAD/LICENSE)
+
 [![Poetry](https://img.shields.io/endpoint?url=https://python-poetry.org/badge/v0.json)](https://python-poetry.org/)
 [![Ruff](https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/astral-sh/ruff/main/assets/badge/v2.json)](https://github.com/astral-sh/ruff)
-[![License](https://img.shields.io/github/license/bswck/proxyvars.svg?label=License)](https://github.com/bswck/proxyvars/blob/HEAD/LICENSE)
 [![Pre-commit](https://img.shields.io/badge/pre--commit-enabled-brightgreen?logo=pre-commit&logoColor=white)](https://github.com/pre-commit/pre-commit)
 
 A simple and straight-forward Python module for creating context-dependent proxy objects.
@@ -33,9 +35,9 @@ poetry add proxyvars
 ## For contributors
 
 <!--
-This section was generated from bswck/skeleton@34cc9c6.
+This section was generated from bswck/skeleton@7935235.
 Instead of changing this particular file, you might want to alter the template:
-https://github.com/bswck/skeleton/tree/34cc9c6/project/README.md.jinja
+https://github.com/bswck/skeleton/tree/7935235/project/README.md.jinja
 -->
 
 > [!Note]

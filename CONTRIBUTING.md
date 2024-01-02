@@ -1,8 +1,8 @@
 
 <!--
-This file was generated from bswck/skeleton@34cc9c6.
+This file was generated from bswck/skeleton@7935235.
 Instead of changing this particular file, you might want to alter the template:
-https://github.com/bswck/skeleton/tree/34cc9c6/fragments/contributing.md
+https://github.com/bswck/skeleton/tree/7935235/fragments/contributing.md
 -->
 # Contributing to [proxyvars](https://github.com/bswck/proxyvars) 🎉
 Contributions are very welcome. 🚀
@@ -47,9 +47,9 @@ Ready to contribute? Here's a quick guide on how to set up proxyvars and make a 
 
 
 <!--
-This section was generated from bswck/skeleton@34cc9c6.
+This section was generated from bswck/skeleton@7935235.
 Instead of changing this particular file, you might want to alter the template:
-https://github.com/bswck/skeleton/tree/34cc9c6/fragments/guide.md
+https://github.com/bswck/skeleton/tree/7935235/fragments/guide.md
 -->
 
 !!! Note
