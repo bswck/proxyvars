@@ -1,6 +1,6 @@
-# This file was generated from bswck/skeleton@61eeffb.
+# This file was generated from bswck/skeleton@34cc9c6.
 # Instead of changing this particular file, you might want to alter the template:
-# https://github.com/bswck/skeleton/tree/61eeffb/project/.github/workflows/%23%25%20if%20docs%20%25%23documentation-links.yml%23%25%20endif%20%25%23.jinja
+# https://github.com/bswck/skeleton/tree/34cc9c6/project/.github/workflows/%23%25%20if%20docs%20%25%23documentation-links.yml%23%25%20endif%20%25%23.jinja
 
 name: "readthedocs/actions"
 on:

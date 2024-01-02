@@ -1,5 +1,5 @@
 
-# proxyvars [![skeleton](https://img.shields.io/badge/61eeffb-skeleton?label=%F0%9F%92%80%20bswck/skeleton&labelColor=black&color=grey&link=https%3A//github.com/bswck/skeleton)](https://github.com/bswck/skeleton/tree/61eeffb)
+# proxyvars [![skeleton](https://img.shields.io/badge/34cc9c6-skeleton?label=%F0%9F%92%80%20bswck/skeleton&labelColor=black&color=grey&link=https%3A//github.com/bswck/skeleton)](https://github.com/bswck/skeleton/tree/34cc9c6)
 [![Package version](https://img.shields.io/pypi/v/proxyvars?label=PyPI)](https://pypi.org/project/proxyvars/)
 [![Supported Python versions](https://img.shields.io/pypi/pyversions/proxyvars.svg?logo=python&label=Python)](https://pypi.org/project/proxyvars/)
 
@@ -33,9 +33,9 @@ poetry add proxyvars
 ## For contributors
 
 <!--
-This section was generated from bswck/skeleton@61eeffb.
+This section was generated from bswck/skeleton@34cc9c6.
 Instead of changing this particular file, you might want to alter the template:
-https://github.com/bswck/skeleton/tree/61eeffb/project/README.md.jinja
+https://github.com/bswck/skeleton/tree/34cc9c6/project/README.md.jinja
 -->
 
 > [!Note]
