@@ -173,6 +173,7 @@ def proxy(
     namespace_overwrites
         A mapping of attribute names to values that the namespace
         of the Proxy class will be updated with before the class's creation.
+
     """
     descriptor = partial(proxy_descriptor, get_state, overwrite_state)
 
@@ -404,6 +405,7 @@ def const_proxy(
     namespace_overwrites
         A mapping of attribute names to values that the namespace
         of the Proxy class will be updated with before the class's creation.
+
     """
     if weakref_callback and not weak:
         msg = "weakref_callback requires weak=True"
@@ -436,9 +438,10 @@ class ProxyStateLookup(Protocol[_T]):
     It is then converted to `MissingStateError` and handled by the proxy instance,
     which might be finally propagated to the caller.
 
-    Note:
-    ----
+    Notes
+    -----
     All `contextvars.ContextVar` objects are valid proxy state lookups.
+
     """
 
     def get(self) -> _T:
@@ -502,6 +505,7 @@ def lookup_proxy(
         Defaults to `state_lookup.get`.
     state_lookup_overwrite_state
         A callable that overwrites the current state of the proxy.
+
     """
     if state_lookup_get_state is None:
         state_lookup_get_state = _lookup_proxy_get_state
@@ -598,6 +602,7 @@ def proxy_field_accessor(
     namespace_overwrites
         A mapping of attribute names to values that the namespace
         of the Proxy class will be updated with before the class's creation.
+
     """
     if not path:
         msg = "proxy field path must not be empty"
@@ -675,6 +680,7 @@ def proxy_item_accessor(
     namespace_overwrites
         A mapping of attribute names to values that the namespace
         of the Proxy class will be updated with before the class's creation.
+
     """
     return proxy_field_accessor(
         *path,
@@ -749,6 +755,7 @@ def proxy_attribute_accessor(
     namespace_overwrites
         A mapping of attribute names to values that the namespace
         of the Proxy class will be updated with before the class's creation.
+
     """
     return proxy_field_accessor(
         *path,
