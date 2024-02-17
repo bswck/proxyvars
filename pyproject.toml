@@ -1,11 +1,11 @@
-# This file was generated from bswck/skeleton@7935235.
+# This file was generated from bswck/skeleton@0.0.2rc-137-g9111179.
 # Instead of changing this particular file, you might want to alter the template:
-# https://github.com/bswck/skeleton/tree/7935235/project/pyproject.toml.jinja
+# https://github.com/bswck/skeleton/tree/0.0.2rc-137-g9111179/project/pyproject.toml.jinja
 
 [tool.poetry]
 name = "proxyvars"
 version = "0.9.2"
-description = "A simple and straight-forward Python module for creating context-dependent proxy objects."
+description = "Callback-based object proxies in Python."
 authors = ["bswck <bswck.dev@gmail.com>"]
 license = "MIT"
 readme = "README.md"
@@ -25,17 +25,23 @@ python = ">=3.8,<3.13"
 pytest-lazy-fixture = "^0.6.3"
 
 [tool.poetry.group.dev-skeleton.dependencies]
-# This dependency group was generated from bswck/skeleton@7935235.
+# This dependency group was generated from bswck/skeleton@0.0.2rc-137-g9111179.
 # Instead of changing this particular file, you might want to alter the template:
-# https://github.com/bswck/skeleton/tree/7935235/project/pyproject.toml.jinja
+# https://github.com/bswck/skeleton/tree/0.0.2rc-137-g9111179/project/pyproject.toml.jinja
 mypy = "^1.7.0"
-ruff = "^0.1.2"
+ruff = "^0.2.1"
 towncrier = "^23.11.0"
-pytest = "^7.4.3"
-coverage = "^7.3.2"
+coverage = "^7.4.0"
+pytest = "^8.0.0"
+pytest-doctestplus = "^1.1.0"
+covdefaults = "^2.3.0"
 poethepoet = "^0.24.3"
 pre-commit = "^3.5.0"
 smokeshow = "^0.4.0"
+keyring = "^24.3.0"
+
+[tool.pytest.ini_options]
+addopts = "--doctest-modules"
 
 [tool.poetry.group.docs]
 optional = true
@@ -48,7 +54,7 @@ mkdocstrings = { version = ">=0.19.0", extras = ["python"] }
 [tool.poe.tasks]
 test = "pytest -v"
 lint = "ruff check ."
-skeleton = "scripts/7935235.sh"
+skeleton = "scripts/skeleton.0.0.2rc-137-g9111179.bash"
 check = [
     { ref="test" },
     { ref="lint" },
@@ -57,27 +63,27 @@ release.script = "scripts.release:main"
 
 [tool.poe.tasks.added]
 shell = "towncrier create $TICKET.added.md --edit"
-args = [{name = "TICKET", positional = true}]
+args = [{name = "TICKET", default = "+", positional = true}]
 
 [tool.poe.tasks.changed]
 shell = "towncrier create $TICKET.changed.md --edit"
-args = [{name = "TICKET", positional = true}]
+args = [{name = "TICKET", default = "+", positional = true}]
 
 [tool.poe.tasks.fixed]
 shell = "towncrier create $TICKET.fixed.md --edit"
-args = [{name = "TICKET", positional = true}]
+args = [{name = "TICKET", default = "+", positional = true}]
 
 [tool.poe.tasks.deprecated]
 shell = "towncrier create $TICKET.deprecated.md --edit"
-args = [{name = "TICKET", positional = true}]
+args = [{name = "TICKET", default = "+", positional = true}]
 
 [tool.poe.tasks.removed]
 shell = "towncrier create $TICKET.removed.md --edit"
-args = [{name = "TICKET", positional = true}]
+args = [{name = "TICKET", default = "+", positional = true}]
 
 [tool.poe.tasks.security]
 shell = "towncrier create $TICKET.security.md --edit"
-args = [{name = "TICKET", positional = true}]
+args = [{name = "TICKET", default = "+", positional = true}]
 
 [tool.ruff]
 exclude = ["tests/", "scripts/"]
@@ -125,7 +131,7 @@ exclude = ["tests/"]
 profile = "black"
 
 [tool.towncrier]
-directory = "changes"
+directory = "news"
 package = "proxyvars"
 filename = "CHANGELOG.md"
 start_string = "<!-- insertion marker -->\n"
@@ -163,17 +169,13 @@ directory = "fixed"
 name = "Fixed"
 showcontent = true
 
+[tool.coverage.run]
+plugins = ["covdefaults"]
+source = ["proxyvars/"]
+relative_files = true
+
 [tool.coverage.report]
-omit = ["tests/*"]
-# fail_under = 96
-exclude_also = [
-    # Be sure to include lines that are not meant to be covered
-    # by tests or encountered by the users at runtime.
-    "raise NotImplementedError",          # Do not cover abstract methods.
-    "if ((t|typing)\\.?)?TYPE_CHECKING:", # Do not cover type checking imports.
-    "@((t|typing)\\.?)?overload",         # Do not cover overload definitions.
-    "\\(((t|typing)\\.?)?Protocol\\):$",  # Do not cover entire protocol definitions.
-]
+fail_under = 90
 
 [build-system]
 requires = ["poetry-core"]

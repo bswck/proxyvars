@@ -1,7 +1,9 @@
 """
-proxyvars - a simple and straight-forward Python library for proxy objects.
+`proxyvars`.
 
-(C) 2023-present Bartosz Sławecki (bswck)
+Callback-based object proxies in Python.
+
+(C) 2024-present Bartosz Sławecki (bswck)
 """
 from __future__ import annotations
 
@@ -192,13 +194,13 @@ def proxy(
         """
 
         if cls is None:
-            __doc__ = descriptor(  # noqa: A003
+            __doc__ = descriptor(
                 class_value=__doc__ and __doc__ % {"cls_name": "other object"},
             )
             __dir__ = descriptor()
             __class__ = descriptor()
         else:
-            __doc__ = descriptor(  # noqa: A003
+            __doc__ = descriptor(
                 class_value=__doc__ and __doc__ % {"cls_name": repr(cls.__name__)},
             )
             __dir__ = descriptor(on_missing_state=lambda: dir(cls))
@@ -447,7 +449,7 @@ class ProxyStateLookup(Protocol[_T]):
     def get(self) -> _T:
         """Get the current state of the proxy."""
 
-    def set(self, value: _T, /) -> Any:  # noqa: A003
+    def set(self, value: _T, /) -> Any:
         """Overwrite the current state of the proxy."""
 
 

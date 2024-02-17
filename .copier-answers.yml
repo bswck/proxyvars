@@ -1,21 +1,22 @@
-_commit: '7935235'
+_commit: 0.0.2rc-137-g9111179
 _src_path: gh:bswck/skeleton
-author_username: bswck
+author: bswck
+cli: false
+copyright: Bartosz Sławecki
+description: Callback-based object proxies in Python.
 docs: true
-docs_slug: proxyvars
-email_address: bswck.dev@gmail.com
-github_username: bswck
-license_name: MIT
-org_full_name: Bartosz Sławecki
-package_name: proxyvars
-project_description: A simple and straight-forward Python module for creating context-dependent
-    proxy objects.
-publish_on_pypi: true
-pypi_project_description: A simple and straight-forward Python module for creating
-    context-dependent proxy objects.
+email: bswck.dev@gmail.com
+github: bswck
+license: MIT
+package: proxyvars
+precommit: true
+pypi: true
+pypi_description: Callback-based object proxies in Python.
 pypi_project_name: proxyvars
-python_version: '3.8'
-repo_name: proxyvars
+pypy: true
+python: '3.8'
+repo: proxyvars
+rtd: proxyvars
 tests: true
-use_precommit: true
 visibility: public
+wip: false
