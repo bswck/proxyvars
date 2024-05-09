@@ -7,6 +7,27 @@ This project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html
 
 <!-- insertion marker -->
 
+## [v0.10.0](https://github.com/bswck/proxyvars/tree/v0.10.0) (2024-05-09)
+
+
+### Removed
+
+- `proxy_attribute_accessor` and `proxy_item_accessor` functions.
+
+### Added
+
+- Doctests for `proxy_field_accessor`.
+
+### Changed
+
+- Improved documentation.
+
+### Fixed
+
+- Relaxed supported Python versions to `>=3.8` to avoid being an unsolvable dependency.
+- Type-safety in tests.
+
+
 ## [v0.9.2](https://github.com/bswck/proxyvars/tree/v0.9.2) (2024-02-16)
 
 
