@@ -12,6 +12,7 @@ import operator
 import weakref
 from contextlib import suppress
 from functools import partial, reduce
+from itertools import repeat
 from typing import (
     TYPE_CHECKING,
     Any,
@@ -30,8 +31,6 @@ __all__ = (
     "const_proxy",
     "lookup_proxy",
     "proxy_field_accessor",
-    "proxy_item_accessor",
-    "proxy_attribute_accessor",
 )
 
 _T = TypeVar("_T")
@@ -148,9 +147,14 @@ def _try_classgetitem(
     return class_getitem(name)
 
 
+def _readonly_proxy_overwrite_state(_: _T) -> None:
+    msg = "A read-only proxy"
+    raise TypeError(msg)
+
+
 def proxy(
     get_state: Callable[..., _T],
-    overwrite_state: Callable[[_T], None],
+    overwrite_state: Callable[[_T], None] | None = None,
     cls: type[_T] | None = None,
     proxy_base_cls: type[object] = object,
     proxy_metaclass: type[type] = type,
@@ -165,19 +169,23 @@ def proxy(
         A callable that returns the current state of the proxy.
     overwrite_state
         A callable that overwrites the current state of the proxy.
+        If not provided, the proxy is read-only and its state cannot be overwritten.
     cls
         The class of the object to be proxied.
     proxy_base_cls
-        The base class of the proxy object (default: `object`).
+        The base class of the proxy object.
         This is useful if you want add custom descriptors to the result proxy object.
     proxy_metaclass
-        The metaclass of the proxy object (default: `type`).
+        The metaclass of the proxy object.
         This is useful if you want add custom descriptors to the result proxy object.
     namespace_overwrites
         A mapping of attribute names to values that the namespace
         of the Proxy class will be updated with before the class's creation.
 
     """
+    if overwrite_state is None:
+        overwrite_state = _readonly_proxy_overwrite_state
+
     descriptor = partial(proxy_descriptor, get_state, overwrite_state)
 
     class Proxy(
@@ -207,7 +215,7 @@ def proxy(
             __dir__ = descriptor(on_missing_state=lambda: dir(cls))
             __class__ = descriptor(implementation=cls)
         __wrapped__ = descriptor()
-        __repr__, __str__ = [
+        __repr__, __str__ = repeat(
             descriptor(
                 implementation=lambda: (
                     "<object (no state)>"
@@ -216,7 +224,8 @@ def proxy(
                 ),
                 try_state_first=True,
             ),
-        ] * 2
+            times=2,
+        )
         __bytes__ = descriptor()
         __format__ = descriptor()
         __lt__ = descriptor()
@@ -356,11 +365,6 @@ def proxy(
     return cast(_T, Proxy())
 
 
-def _const_proxy_overwrite_state(_: _T) -> None:
-    msg = "Cannot overwrite a constant proxy"
-    raise TypeError(msg)
-
-
 def _const_proxy_get_state(state: _T) -> _T:
     return state
 
@@ -401,7 +405,7 @@ def const_proxy(
         Whether to use a weak reference to the state.
     weakref_callback
         A callback that is called when the weak reference to the state is about
-        to expire. See the `weakref.ref` documentation for details.
+        to expire. See [weakref.ref][] for details.
     proxy_metaclass
         The metaclass of the proxy object (default: `type`).
         This is useful if you want add custom descriptors to the result proxy object.
@@ -425,7 +429,7 @@ def const_proxy(
     return proxy(
         cls=cls,
         get_state=get_state,
-        overwrite_state=_const_proxy_overwrite_state,
+        overwrite_state=_readonly_proxy_overwrite_state,
         proxy_base_cls=proxy_base_cls,
         proxy_metaclass=proxy_metaclass,
         namespace_overwrites=namespace_overwrites,
@@ -441,10 +445,9 @@ class ProxyStateLookup(Protocol[_T]):
     It is then converted to `MissingStateError` and handled by the proxy instance,
     which might be finally propagated to the caller.
 
-    Notes
-    -----
-    All `contextvars.ContextVar` objects are valid proxy state lookups.
-
+    !!! note
+        All [`ContextVar`][contextvars.ContextVar] objects are valid proxy state
+        lookups.
     """
 
     def get(self) -> _T:
@@ -568,23 +571,39 @@ def proxy_field_accessor(
     """
     Create a proxy that accesses a (maybe nested) field of another proxy.
 
-    The valid usage of this function resembles the way to use the `AliasPath` class
-    from [pydantic 2](https://docs.pydantic.dev/2.3/).
+    The valid usage of this function resembles the way to use [the `AliasPath` class
+    from Pydantic](https://docs.pydantic.dev/2.7/concepts/alias/#aliaspath-and-aliaschoices).
+
+    Examples
+    --------
+    >>> from types import SimpleNamespace
+    >>> proxy_var = proxy(lambda: [SimpleNamespace(attribute=["v1", "v2"])])
+    >>> namespace = proxy_field_accessor(0, proxy_var=proxy_var)
+    >>> namespace
+    namespace(attribute=['v1', 'v2'])
+    >>> items = proxy_field_accessor("attribute", proxy_var=namespace)
+    >>> items
+    ['v1', 'v2']
+
+    We can now use a full path to the item with:
+    >>> items_again = proxy_field_accessor(0, "attribute", proxy_var=proxy_var)
+    >>> items_again
+    ['v1', 'v2']
+    >>> items_again[0]
+    'v1'
 
     Parameters
     ----------
     path
         The path to the field to be accessed.
         Each item in the path can be either a string (for attribute access)
-        or a custom object (for item access).
+        or an arbitrary object (for item access).
         This behavior that treats strings specially might be customized
         by passing custom `field_get_state` and `field_overwrite_state` functions.
 
         For example, the path `("a", 0, "b")` would be equivalent to
         `proxy_var.a[0].b`. To change it the behavior to `proxy_var["a"][0]["b"]`,
-        simply use `proxy_item_accessor` directly
-        or  pass `field_get_state=lambda o, f: o[f]`
-        and `field_overwrite_state=lambda o, f, v: o.__setitem__(o, f, v)`
+        pass `field_overwrite_state=lambda o, f, v: o.__setitem__(o, f, v)`
         to this function.
     proxy_var
         The proxy object to be accessed.
@@ -597,10 +616,10 @@ def proxy_field_accessor(
         A callable that overwrites a field of an object.
         Defaults to `setattr` for strings and `.__setitem__()` otherwise.
     proxy_base_cls
-        The base class of the proxy object (default: `object`).
+        The base class of the proxy object.
         This is useful if you want add custom descriptors to the result proxy object.
     proxy_metaclass
-        The metaclass of the proxy object (default: `type`).
+        The metaclass of the proxy object.
         This is useful if you want add custom descriptors to the result proxy object.
     namespace_overwrites
         A mapping of attribute names to values that the namespace
@@ -625,147 +644,6 @@ def proxy_field_accessor(
         get_state,
         overwrite_state,
         cls=cls,
-        proxy_base_cls=proxy_base_cls,
-        proxy_metaclass=proxy_metaclass,
-        namespace_overwrites=namespace_overwrites,
-    )
-
-
-def _proxy_item_get_state(
-    obj: Any,
-    field: object,
-) -> object:
-    return obj[field]
-
-
-def _proxy_item_overwrite_state(
-    obj: Any,
-    field: object,
-    value: object,
-) -> None:
-    obj[field] = value
-
-
-def proxy_item_accessor(
-    *path: object,
-    proxy_var: object,
-    cls: type[_T] | None = None,
-    proxy_base_cls: type[object] = object,
-    proxy_metaclass: type[type] = type,
-    namespace_overwrites: Mapping[str, object] | None = None,
-) -> _T:
-    """
-    Create a proxy that accesses a (maybe nested) item of another proxy.
-
-    The valid usage of this function resembles the way to use the `AliasPath` class
-    from [pydantic 2](https://docs.pydantic.dev/2.3/).
-
-    Parameters
-    ----------
-    path
-        The path to the item to be accessed.
-        Every item in the path will be used as a key to access the next item.
-        For example, the path `("a", 0, "b")` would be equivalent to
-        `proxy_var["a"][0]["b"]`.
-
-        To change this behavior to `proxy_var.a[0].b`, simply use `proxy_field_accessor`
-        instead.
-    proxy_var
-        The proxy object to be accessed.
-    cls
-        The class of the object to be proxied.
-    proxy_base_cls
-        The base class of the proxy object (default: `object`).
-        This is useful if you want add custom descriptors to the result proxy object.
-    proxy_metaclass
-        The metaclass of the proxy object (default: `type`).
-        This is useful if you want add custom descriptors to the result proxy object.
-    namespace_overwrites
-        A mapping of attribute names to values that the namespace
-        of the Proxy class will be updated with before the class's creation.
-
-    """
-    return proxy_field_accessor(
-        *path,
-        proxy_var=proxy_var,
-        cls=cls,
-        field_get_state=_proxy_field_get_state,
-        field_overwrite_state=_proxy_field_overwrite_state,
-        proxy_base_cls=proxy_base_cls,
-        proxy_metaclass=proxy_metaclass,
-        namespace_overwrites=namespace_overwrites,
-    )
-
-
-def _proxy_attribute_get_state(
-    obj: Any,
-    field: object,
-) -> object:
-    if not isinstance(field, str):
-        msg = "attribute access requires a string field"
-        raise TypeError(msg)
-    return getattr(obj, field)
-
-
-def _proxy_attribute_overwrite_state(
-    obj: Any,
-    field: object,
-    value: object,
-) -> None:
-    if not isinstance(field, str):
-        msg = "attribute access requires a string field"
-        raise TypeError(msg)
-    setattr(obj, field, value)
-
-
-def proxy_attribute_accessor(
-    *path: str,
-    proxy_var: object,
-    cls: type[_T] | None = None,
-    proxy_base_cls: type[object] = object,
-    proxy_metaclass: type[type] = type,
-    namespace_overwrites: Mapping[str, object] | None = None,
-) -> _T:
-    """
-    Create a proxy that accesses a (maybe nested) attribute of another proxy.
-
-    The valid usage of this function resembles the way to use the `AliasPath` class
-    from [pydantic 2](https://docs.pydantic.dev/2.3/).
-
-    Parameters
-    ----------
-    path
-        The path to the item to be accessed.
-        Every item in the path will be used as a key to access the next item.
-        For example, the path `("a", 0, "b")` would be invalid
-        and result in a TypeError, because `0` is not
-        a string. The path `("a", "0", "b")` would be then equivalent to
-        `getattr(proxy_var.a, "0").b`.
-
-        To change this behavior to `proxy_var.a[0].b`, simply use `proxy_field_accessor`
-        instead. If you need to change this behavior to `proxy_var["a"][0]["b"]` though,
-        consider using `proxy_item_accessor` instead.
-    proxy_var
-        The proxy object to be accessed.
-    cls
-        The class of the object to be proxied.
-    proxy_base_cls
-        The base class of the proxy object (default: `object`).
-        This is useful if you want add custom descriptors to the result proxy object.
-    proxy_metaclass
-        The metaclass of the proxy object (default: `type`).
-        This is useful if you want add custom descriptors to the result proxy object.
-    namespace_overwrites
-        A mapping of attribute names to values that the namespace
-        of the Proxy class will be updated with before the class's creation.
-
-    """
-    return proxy_field_accessor(
-        *path,
-        proxy_var=proxy_var,
-        cls=cls,
-        field_get_state=_proxy_attribute_get_state,
-        field_overwrite_state=_proxy_attribute_overwrite_state,
         proxy_base_cls=proxy_base_cls,
         proxy_metaclass=proxy_metaclass,
         namespace_overwrites=namespace_overwrites,
