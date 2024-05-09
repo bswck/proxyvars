@@ -5,6 +5,7 @@
 
 Callback-based object proxies in Python.
 """
+
 from __future__ import annotations
 
 import operator
