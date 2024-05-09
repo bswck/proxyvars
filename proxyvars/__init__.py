@@ -30,7 +30,7 @@ __all__ = (
 )
 
 _T = TypeVar("_T")
-_MISSING = object()
+_MISSING = type("_Missing", (), {})()
 
 
 class MissingStateError(RuntimeError):
