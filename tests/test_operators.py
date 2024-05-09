@@ -1,67 +1,97 @@
+from __future__ import annotations
+
 from contextvars import ContextVar
+from itertools import chain
 from math import isinf
 from random import choice
+from types import SimpleNamespace
+from typing import TYPE_CHECKING
 
 import pytest
-from pytest_lazyfixture import lazy_fixture
 
 from proxyvars import lookup_proxy
 
+from tests.conftest import (
+    booleans as booleans_fixture,
+    integers as integers_fixture,
+    floats as floats_fixture,
+    strings as strings_fixture,
+    lists as lists_fixture,
+)
+
 try:
-    import numpy as np  # type: ignore
+    import numpy as np  # type: ignore[module-not-found]
 except ImportError:
     np = None
 
+if TYPE_CHECKING:
+    from collections.abc import Callable, Iterator
+    from typing import Any, TypeVar
+
+    from tests.conftest import Objects
+
+    R = TypeVar("R")
+
+
+def lazy_fixture(fixture: Callable[..., Iterator[R]]) -> Iterator[R]:
+    marker = fixture._pytestfixturefunction
+    fixture_func = fixture.__wrapped__
+    yield from (
+        next(fixture_func(SimpleNamespace(param=param))) for param in marker.params
+    )
+
+
 integers_and_floats = pytest.mark.parametrize(
     "objects",
-    [
-        lazy_fixture("integers"),
-        lazy_fixture("floats"),
-    ],
+    chain(
+        lazy_fixture(integers_fixture),
+        lazy_fixture(floats_fixture),
+    ),
 )
+
 
 strings_and_lists = pytest.mark.parametrize(
     "objects",
-    [
-        lazy_fixture("strings"),
-        lazy_fixture("lists"),
-    ],
+    chain(
+        lazy_fixture(strings_fixture),
+        lazy_fixture(lists_fixture),
+    ),
 )
 
 
 @integers_and_floats
-def test_abs(objects):
+def test_abs(objects: Objects[int | float]) -> None:
     actual, _, proxy_var = objects
     assert abs(actual) == abs(proxy_var)
 
 
 @integers_and_floats
-def test_add(objects):
+def test_add(objects: Objects[int | float]) -> None:
     actual, _, proxy_var = objects
     assert actual + 1 == proxy_var + 1
 
 
-def test_and_(integers):
+def test_and_(integers: Objects[int]) -> None:
     actual, _, proxy_var = integers
     assert actual & 1 == proxy_var & 1
 
 
-def test_concat(strings):
+def test_concat(strings: Objects[str]) -> None:
     actual, _, proxy_var = strings
     assert actual + "a" == proxy_var + "a"
 
 
-def test_contains(strings):
+def test_contains(strings: Objects[str]) -> None:
     actual, _, proxy_var = strings
     assert ("a" in actual) == ("a" in proxy_var)
 
 
-def test_countOf(strings):
+def test_countOf(strings: Objects[str]) -> None:
     actual, _, proxy_var = strings
     assert actual.count("a") == proxy_var.count("a")
 
 
-def test_item_access(lists):
+def test_item_access(lists: Objects[list[Any]]) -> None:
     # covers getitem, setitem and delitem
     actual, _, proxy_var = lists
     actual[:1] = [1]
@@ -73,21 +103,26 @@ def test_item_access(lists):
 
 @pytest.mark.parametrize(
     "objects",
-    [
-        lazy_fixture("integers"),
-        lazy_fixture("floats"),
-        lazy_fixture("strings"),
-        lazy_fixture("booleans"),
-        lazy_fixture("lists"),
-    ],
+    chain.from_iterable(
+        map(
+            lazy_fixture,
+            (
+                integers_fixture,
+                floats_fixture,
+                strings_fixture,
+                booleans_fixture,
+                lists_fixture,
+            ),
+        )
+    ),
 )
-def test_eq(objects):
+def test_eq(objects: Objects[object]) -> None:
     actual, _, proxy_var = objects
     assert actual == proxy_var
 
 
 @integers_and_floats
-def test_floordiv(objects):
+def test_floordiv(objects: Objects[int | float]) -> None:
     actual, _, proxy_var = objects
     assert isinf(actual) == isinf(proxy_var)
     if not isinf(actual):
@@ -95,18 +130,18 @@ def test_floordiv(objects):
 
 
 @integers_and_floats
-def test_ge(objects):
+def test_ge(objects: Objects[int | float]) -> None:
     actual, _, proxy_var = objects
     assert (actual >= 1) == (proxy_var >= 1)
 
 
-def test_gt(integers):
+def test_gt(integers: Objects[int]) -> None:
     actual, _, proxy_var = integers
     assert (actual > 1) == (proxy_var > 1)
     assert not actual > proxy_var  # they are equal
 
 
-def test_iadd(integers):
+def test_iadd(integers: Objects[int]) -> None:
     actual, mgr, proxy_var = integers
 
     actual += 1
@@ -118,7 +153,7 @@ def test_iadd(integers):
     assert actual == proxy_var
 
 
-def test_iand(integers):
+def test_iand(integers: Objects[int]) -> None:
     actual, mgr, proxy_var = integers
 
     actual &= 1
@@ -130,7 +165,7 @@ def test_iand(integers):
     assert actual == proxy_var
 
 
-def test_iconcat(strings):
+def test_iconcat(strings: Objects[str]) -> None:
     actual, mgr, proxy_var = strings
 
     actual += "a"
@@ -142,7 +177,7 @@ def test_iconcat(strings):
     assert actual == proxy_var
 
 
-def test_ifloordiv(integers):
+def test_ifloordiv(integers: Objects[int]) -> None:
     actual, mgr, proxy_var = integers
 
     actual //= 1
@@ -154,7 +189,7 @@ def test_ifloordiv(integers):
     assert actual == proxy_var
 
 
-def test_ilshift(integers):
+def test_ilshift(integers: Objects[int]) -> None:
     actual, mgr, proxy_var = integers
 
     actual <<= 1
@@ -166,7 +201,7 @@ def test_ilshift(integers):
     assert actual == proxy_var
 
 
-def test_imod(integers):
+def test_imod(integers: Objects[int]) -> None:
     actual, mgr, proxy_var = integers
 
     actual %= 1
@@ -178,7 +213,7 @@ def test_imod(integers):
     assert actual == proxy_var
 
 
-def test_imul(integers):
+def test_imul(integers: Objects[int]) -> None:
     actual, mgr, proxy_var = integers
 
     actual *= 100
@@ -191,19 +226,19 @@ def test_imul(integers):
 
 
 @strings_and_lists
-def test_index(objects):
+def test_index(objects: Objects[str | list[Any]]) -> None:
     actual, _, proxy_var = objects
     if actual:
         element = choice(actual)
         assert actual.index(element) == proxy_var.index(element)
 
 
-def test_inv(integers):
+def test_inv(integers: Objects[int]) -> None:
     actual, _, proxy_var = integers
     assert ~actual == ~proxy_var
 
 
-def test_ior(integers):
+def test_ior(integers: Objects[int]) -> None:
     actual, mgr, proxy_var = integers
 
     actual |= 1
@@ -215,7 +250,7 @@ def test_ior(integers):
     assert actual == proxy_var
 
 
-def test_ipow(integers):
+def test_ipow(integers: Objects[int]) -> None:
     actual, mgr, proxy_var = integers
 
     actual **= 1
@@ -227,7 +262,7 @@ def test_ipow(integers):
     assert actual == proxy_var
 
 
-def test_irshift(integers):
+def test_irshift(integers: Objects[int]) -> None:
     actual, mgr, proxy_var = integers
 
     actual >>= 1
@@ -239,19 +274,19 @@ def test_irshift(integers):
     assert actual == proxy_var
 
 
-def test_is_(integers):
+def test_is_(integers: Objects[int]) -> None:
     actual, _, proxy_var = integers
     with pytest.raises(AssertionError):
         # this should fail because the objects are not the same
         assert actual is proxy_var
 
 
-def test_is_not(integers):
+def test_is_not(integers: Objects[int]) -> None:
     actual, _, proxy_var = integers
     assert actual is not proxy_var
 
 
-def test_isub(integers):
+def test_isub(integers: Objects[int]) -> None:
     actual, mgr, proxy_var = integers
 
     actual -= 1
@@ -263,7 +298,7 @@ def test_isub(integers):
     assert actual == proxy_var
 
 
-def test_itruediv(integers):
+def test_itruediv(integers: Objects[int]) -> None:
     actual, mgr, proxy_var = integers
 
     actual /= 1
@@ -275,7 +310,7 @@ def test_itruediv(integers):
     assert actual == proxy_var
 
 
-def test_ixor(integers):
+def test_ixor(integers: Objects[int]) -> None:
     actual, mgr, proxy_var = integers
 
     actual ^= 1
@@ -288,24 +323,24 @@ def test_ixor(integers):
 
 
 @integers_and_floats
-def test_le(objects):
+def test_le(objects: Objects[int | float]) -> None:
     actual, _, proxy_var = objects
     assert (actual <= 1) == (proxy_var <= 1)
 
 
 @strings_and_lists
-def test_length_hint(objects):
+def test_length_hint(objects: Objects[str | list[Any]]) -> None:
     actual, _, proxy_var = objects
     assert len(actual) == len(proxy_var)
 
 
-def test_lshift(integers):
+def test_lshift(integers: Objects[int]) -> None:
     actual, _, proxy_var = integers
     assert actual << 1 == proxy_var << 1
 
 
 @integers_and_floats
-def test_lt(objects):
+def test_lt(objects) -> None:
     actual, _, proxy_var = objects
     assert (actual < 1) == (proxy_var < 1)
     assert not actual < proxy_var  # they are equal
@@ -314,7 +349,7 @@ def test_lt(objects):
 
 if np:
 
-    def test_matmul():
+    def test_matmul() -> None:
         actual = np.array([[1, 2], [3, 4]])
         mgr = ContextVar("matrix")
         mgr.set(actual)
@@ -322,7 +357,7 @@ if np:
         matrix = [[9, 10], [11, 12]]
         assert ((actual @ matrix) == (proxy_var @ matrix)).all()
 
-    def test_imatmul():
+    def test_imatmul() -> None:
         actual = np.array([[1, 2], [3, 4]])
         mgr = ContextVar("matrix")
         mgr.set(actual)
@@ -337,7 +372,7 @@ if np:
         assert (actual == proxy_var).all()
 
 
-def test_methods(strings, integers):
+def test_methods(strings: Objects[str], integers: Objects[int]) -> None:
     actual, _, proxy_var = strings
     assert actual.upper() == proxy_var.upper()
 
@@ -345,76 +380,76 @@ def test_methods(strings, integers):
     assert actual.bit_length() == proxy_var.bit_length()
 
 
-def test_mod(integers):
+def test_mod(integers: Objects[int]) -> None:
     actual, _, proxy_var = integers
     assert actual % 1 == proxy_var % 1
 
 
-def test_mul(strings):
+def test_mul(strings: Objects[str]) -> None:
     actual, _, proxy_var = strings
     assert actual * 2 == proxy_var * 2
 
 
-def test_ne(integers):
+def test_ne(integers: Objects[int]) -> None:
     actual, _, proxy_var = integers
     assert (actual != 1) == (proxy_var != 1)
 
 
-def test_neg(integers):
+def test_neg(integers: Objects[int]) -> None:
     actual, _, proxy_var = integers
     assert -actual == -proxy_var
 
 
-def test_not_(integers):
+def test_not_(integers: Objects[int]) -> None:
     actual, _, proxy_var = integers
     assert (not not actual) == (not not proxy_var)
 
 
-def test_or(integers):
+def test_or(integers: Objects[int]) -> None:
     actual, _, proxy_var = integers
     assert actual | 1 == proxy_var | 1
 
 
-def test_pos(integers):
+def test_pos(integers: Objects[int]) -> None:
     actual, _, proxy_var = integers
     assert +actual == +proxy_var
 
 
-def test_pow(integers):
+def test_pow(integers: Objects[int]) -> None:
     actual, _, proxy_var = integers
     assert actual**1 == proxy_var**1
 
 
-def test_rshift(integers):
+def test_rshift(integers: Objects[int]) -> None:
     actual, _, proxy_var = integers
     assert actual >> 1 == proxy_var >> 1
 
 
-def test_sub(integers):
+def test_sub(integers: Objects[int]) -> None:
     actual, _, proxy_var = integers
     assert actual - 1 == proxy_var - 1
 
 
-def test_truediv(integers):
+def test_truediv(integers: Objects[int]) -> None:
     actual, _, proxy_var = integers
     assert actual / 1 == proxy_var / 1
 
 
-def test_truth(integers):
+def test_truth(integers: Objects[int]) -> None:
     # actual truth check is technically faster than bool()
     # but semantically equivalent
     actual, _, proxy_var = integers
     assert bool(actual) == bool(proxy_var)
 
 
-def test_xor(integers):
+def test_xor(integers: Objects[int]) -> None:
     actual, _, proxy_var = integers
     assert actual ^ 1 == proxy_var ^ 1
 
 
-def test_attrgetter():
+def test_attrgetter() -> None:
     class A:
-        def __init__(self, value):
+        def __init__(self, value) -> None:
             self.value = value
 
     actual = A(1)
@@ -425,7 +460,7 @@ def test_attrgetter():
     assert actual.value == proxy_var.value
 
 
-def test_delitem():
+def test_delitem() -> None:
     actual = [1, 2, 3]
     mgr = ContextVar("delitem")
     mgr.set(actual)
@@ -436,7 +471,7 @@ def test_delitem():
     assert actual == proxy_var
 
 
-def test_eq_object():
+def test_eq_object() -> None:
     actual = object()
     mgr = ContextVar("eq")
     mgr.set(actual)

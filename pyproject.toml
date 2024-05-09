@@ -26,7 +26,6 @@ Coverage = "https://coverage-badge.samuelcolvin.workers.dev/redirect/bswck/proxy
 python = ">=3.8"
 
 [tool.poetry.group.dev.dependencies]
-pytest-lazy-fixture = "^0.6.3"
 
 [tool.poetry.group.dev-skeleton.dependencies]
 # This dependency group was generated from bswck/skeleton@0.0.2rc-234-gca605f0.
@@ -47,7 +46,6 @@ keyring = ">=25.0.0"
 
 [tool.pytest.ini_options]
 addopts = "--doctest-modules"
-
 
 [tool.poetry.group.docs]
 optional = true
@@ -144,7 +142,6 @@ required-imports = ["from __future__ import annotations"]
 
 [tool.mypy]
 strict = true
-exclude = ["tests/"]
 
 [tool.towncrier]
 directory = "news"
