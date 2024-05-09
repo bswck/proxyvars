@@ -1,8 +1,8 @@
 
 <!--
-This file was generated from bswck/skeleton@0.0.2rc-137-g9111179.
+This file was generated from bswck/skeleton@0.0.2rc-234-gca605f0.
 Instead of changing this particular file, you might want to alter the template:
-https://github.com/bswck/skeleton/tree/0.0.2rc-137-g9111179/fragments/contributing.md
+https://github.com/bswck/skeleton/tree/0.0.2rc-234-gca605f0/fragments/contributing.md
 -->
 # Contributing to [proxyvars](https://github.com/bswck/proxyvars) 🎉
 Contributions are very welcome. 🚀
@@ -47,9 +47,9 @@ Ready to contribute? Here's a quick guide on how to set up proxyvars and make a 
 
 
 <!--
-This section was generated from bswck/skeleton@0.0.2rc-137-g9111179.
+This section was generated from bswck/skeleton@0.0.2rc-234-gca605f0.
 Instead of changing this particular file, you might want to alter the template:
-https://github.com/bswck/skeleton/tree/0.0.2rc-137-g9111179/fragments/guide.md
+https://github.com/bswck/skeleton/tree/0.0.2rc-234-gca605f0/fragments/guide.md
 -->
 > [!Note]
 > If you use Windows, it is highly recommended to complete the installation in the way presented below through [WSL2](https://learn.microsoft.com/en-us/windows/wsl/install).
@@ -104,7 +104,7 @@ https://github.com/bswck/skeleton/tree/0.0.2rc-137-g9111179/fragments/guide.md
 1.  Commit your changes and push your branch to GitHub:
 
     ```shell
-    git add .
+    git add -A
     git commit -m "Short description of changes (50 chars max)" -m "Optional extended description"
     git push origin name-of-your-bugfix-or-feature
     ```
