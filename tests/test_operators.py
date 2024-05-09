@@ -19,11 +19,6 @@ from tests.conftest import (
     lists as lists_fixture,
 )
 
-try:
-    import numpy as np  # type: ignore[module-not-found]
-except ImportError:
-    np = None
-
 if TYPE_CHECKING:
     from collections.abc import Callable, Iterator
     from typing import Any, TypeVar
@@ -34,8 +29,8 @@ if TYPE_CHECKING:
 
 
 def lazy_fixture(fixture: Callable[..., Iterator[R]]) -> Iterator[R]:
-    marker = fixture._pytestfixturefunction
-    fixture_func = fixture.__wrapped__
+    marker = fixture._pytestfixturefunction  # type: ignore[attr-defined]
+    fixture_func = fixture.__wrapped__  # type: ignore[attr-defined]
     yield from (
         next(fixture_func(SimpleNamespace(param=param))) for param in marker.params
     )
@@ -213,7 +208,7 @@ def test_imod(integers: Objects[int]) -> None:
     assert actual == proxy_var
 
 
-def test_imul(integers: Objects[int]) -> None:
+def test_imul(integers: Objects[float]) -> None:
     actual, mgr, proxy_var = integers
 
     actual *= 100
@@ -298,7 +293,7 @@ def test_isub(integers: Objects[int]) -> None:
     assert actual == proxy_var
 
 
-def test_itruediv(integers: Objects[int]) -> None:
+def test_itruediv(integers: Objects[float]) -> None:
     actual, mgr, proxy_var = integers
 
     actual /= 1
@@ -340,44 +335,45 @@ def test_lshift(integers: Objects[int]) -> None:
 
 
 @integers_and_floats
-def test_lt(objects) -> None:
+def test_lt(objects: Objects[int | float]) -> None:
     actual, _, proxy_var = objects
     assert (actual < 1) == (proxy_var < 1)
     assert not actual < proxy_var  # they are equal
     assert not proxy_var < actual  # they are equal
 
 
-if np:
+def test_matmul() -> None:
+    np = pytest.importorskip("numpy")
+    actual = np.array([[1, 2], [3, 4]])
+    mgr: ContextVar[Any] = ContextVar("matrix")
+    mgr.set(actual)
+    proxy_var = lookup_proxy(mgr)
+    matrix = [[9, 10], [11, 12]]
+    assert ((actual @ matrix) == (proxy_var @ matrix)).all()
 
-    def test_matmul() -> None:
-        actual = np.array([[1, 2], [3, 4]])
-        mgr = ContextVar("matrix")
-        mgr.set(actual)
-        proxy_var = lookup_proxy(mgr)
-        matrix = [[9, 10], [11, 12]]
-        assert ((actual @ matrix) == (proxy_var @ matrix)).all()
 
-    def test_imatmul() -> None:
-        actual = np.array([[1, 2], [3, 4]])
-        mgr = ContextVar("matrix")
-        mgr.set(actual)
-        proxy_var = lookup_proxy(mgr)
+def test_imatmul() -> None:
+    np = pytest.importorskip("numpy")
+    actual = np.array([[1, 2], [3, 4]])
+    mgr: ContextVar[Any] = ContextVar("matrix")
+    mgr.set(actual)
+    proxy_var = lookup_proxy(mgr)
 
-        actual @= [[5, 6], [7, 8]]  # type: ignore
-        mgr.set(actual)
-        assert (actual == proxy_var).all()
+    actual @= [[5, 6], [7, 8]]
+    mgr.set(actual)
+    assert (actual == proxy_var).all()
 
-        proxy_var @= [[9, 10], [11, 12]]
-        actual = mgr.get()
-        assert (actual == proxy_var).all()
+    proxy_var @= [[9, 10], [11, 12]]
+    actual = mgr.get()
+    assert (actual == proxy_var).all()
 
 
 def test_methods(strings: Objects[str], integers: Objects[int]) -> None:
-    actual, _, proxy_var = strings
-    assert actual.upper() == proxy_var.upper()
+    actual_string, _, string_proxy_var = strings
+    assert actual_string.upper() == string_proxy_var.upper()
 
-    actual, _, proxy_var = integers
-    assert actual.bit_length() == proxy_var.bit_length()
+    actual_int, _, int_proxy_var = integers
+    assert actual_int.bit_length() == int_proxy_var.bit_length()
 
 
 def test_mod(integers: Objects[int]) -> None:
@@ -449,11 +445,11 @@ def test_xor(integers: Objects[int]) -> None:
 
 def test_attrgetter() -> None:
     class A:
-        def __init__(self, value) -> None:
+        def __init__(self, value: int) -> None:
             self.value = value
 
     actual = A(1)
-    mgr = ContextVar("attrgetter")
+    mgr: ContextVar[A] = ContextVar("attrgetter")
     mgr.set(actual)
     proxy_var = lookup_proxy(mgr)
 
@@ -462,7 +458,7 @@ def test_attrgetter() -> None:
 
 def test_delitem() -> None:
     actual = [1, 2, 3]
-    mgr = ContextVar("delitem")
+    mgr: ContextVar[list[int]] = ContextVar("delitem")
     mgr.set(actual)
     proxy_var = lookup_proxy(mgr)
 
@@ -473,7 +469,7 @@ def test_delitem() -> None:
 
 def test_eq_object() -> None:
     actual = object()
-    mgr = ContextVar("eq")
+    mgr: ContextVar[object] = ContextVar("eq")
     mgr.set(actual)
     proxy_var = lookup_proxy(mgr)
 

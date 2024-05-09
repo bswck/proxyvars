@@ -13,9 +13,10 @@ if TYPE_CHECKING:
     from typing import Any, TypeVar
 
     from pytest import FixtureRequest
+    from typing_extensions import TypeAlias
 
     Object = TypeVar("Object")
-    Objects = tuple[Object, ContextVar[Object], Object]
+    Objects: TypeAlias = "tuple[Object, ContextVar[Object], Object]"
 
 
 @pytest.fixture(params=[-100, 0, 5, 100])
@@ -52,7 +53,7 @@ def booleans(request: FixtureRequest) -> Iterator[Objects[bool]]:
 
 @pytest.fixture(params=[[], [1], [1, 2], ["foo", "bar"]])
 def lists(request: FixtureRequest) -> Iterator[Objects[list[Any]]]:
-    context_var: ContextVar[list] = ContextVar("list")
+    context_var: ContextVar[list[Any]] = ContextVar("list")
     param = request.param.copy()
     context_var.set(param)
     proxy_var = lookup_proxy(context_var)
