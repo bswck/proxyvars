@@ -8,6 +8,115 @@
 
 Callback-based object proxies in Python.
 
+# Example Usage
+The library might have many use cases.
+
+## Asynchronous Apps
+Imagine a web app that processes many requests asynchronously.
+A fun design we can learn from [contextvars](https://docs.python.org/3/library/contextvars.html#asyncio-support)
+is that we can run request handlers in proper contexts with all the request-related data
+held in context variables instead of requiring endpoint functions to accept parameters like `request`.
+This approach heavily used in Flask, where one can access request data using a global proxy
+[`flask.request`](https://flask.palletsprojects.com/en/3.0.x/api/#flask.request).
+With bare contextvars, we could achieve this:
+
+```py
+from contextvars import ContextVar
+from proxyvars import proxy
+from asgi_framework import App  # some random ASGI web framework
+
+class Request:
+    args: dict[str, str]
+    headers: dict[str, str]
+    data: str
+    # etc...
+
+request_context: ContextVar[Request] = ContextVar("request_context")
+app = App()
+
+# the app will manage to set the appropriate Request object in the context
+# before actually triggering the index() coroutine
+@app.get("/")
+async def echo():
+    request: Request = request_context.get()
+    # do something with request...
+    return request.data
+```
+
+With proxyvars, we can skip the assignment and simply create a dynamic-lookup proxy:
+```py
+# below the Request class
+request = lookup_proxy(request_context)
+
+@app.get("/")
+async def echo():
+    return request.data  # request delegated attribute access to request_context.get()
+```
+
+## Flexible "Global" State
+One of the crucial caveats of using global variables is reduction of modularity and flexibility.
+Typically we want to test our code in an easily-parametrizable environment,
+which becomes unobvious in case of some global state that other parts of your program
+might depend on.
+Problems arise in multi-threaded or asynchronous applications, where some global data typically
+should be thread- or task-local. Python offers [threading.local](https://docs.python.org/3/library/threading.html#threading.local) and [contextvars](https://docs.python.org/3/library/contextvars.html) (respectively) for achieving these goals.
+
+But sometimes global state is just the most convenient solution.
+Imagine running an app with a core `App` class with a config read from a file.
+We don't want to populate the configuration into attributes of the `App` instance
+and rather store configuration data properly in a class named `Config`.
+
+We can store `Config` instance as an attribute `config` of our main class `App`
+that manages the whole application life cycle and then, everytime we need a config value,
+we can request the app's `config` attribute. With a lot of codebase, you can find
+this solution more and more tedious.
+
+Creating a global `app_config` variable, not bound to an app, is not a good direction either though.
+What if you want to 2 apps with distinct configurations? Will you modify the global `app_config` to the proper
+`Config` object everytime?
+
+### Get That "Global" Experience With Proxyvars!
+Simply create a global context variable.
+
+```py
+app_config_var: ContextVar[Config] = ContextVar("app_config_var")
+app_config: Config = lookup_proxy(app_config_var)
+```
+
+Now just run your tests in properly set-up [contexts](https://docs.python.org/3/library/contextvars.html)
+with `app_config_var` holding objects local to every thread, task or just a custom copy of the current context.
+
+
+## Mutable Immutables
+Ever dreamt of thread-safe, mutable integers in Python?
+I don't think anybody did, but it's possible with lookup proxies & beloved contextvars just in case.
+
+```py
+from contextvars import ContextVar
+from proxyvars import proxy
+
+my_iq_var = ContextVar("my_iq_var", 100)
+my_iq = lookup_proxy(my_iq_var)
+
+print(my_iq)  # 100
+
+# Users of proxyvars typically have 200 IQ. Patch our current variable.
+my_iq_var.set(200)
+
+print(my_iq)  # 200
+
+# Alright, let's be real. Assuming we have 200 IQ is a non-200 IQ behavior.
+# Subtract 60 IQ points. We are entitled to 140 as programmers.
+my_iq -= 60
+
+print(my_iq_var.get())  # 140
+print(my_iq)  # 60
+```
+
+This way, we got a mutable immutable. Or, more correctly, we got a proxy object
+that can change its state which is represented by an immutable object.
+
+Have fun with proxyvars!
 
 # For Enterprise
 
