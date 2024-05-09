@@ -1,10 +1,6 @@
 # SPDX-License-Identifier: MIT
 # (C) 2024-present Bartosz Sławecki (bswck)
-"""
-`proxyvars`.
-
-Callback-based object proxies in Python.
-"""
+"""Callback-based object proxies in Python."""
 
 from __future__ import annotations
 
