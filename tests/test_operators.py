@@ -137,86 +137,86 @@ def test_gt(integers: Objects[int]) -> None:
 
 
 def test_iadd(integers: Objects[int]) -> None:
-    actual, mgr, proxy_var = integers
+    actual, lookup, proxy_var = integers
 
     actual += 1
-    mgr.set(actual)
+    lookup.set(actual)
     assert actual == proxy_var
 
     proxy_var -= 1
-    actual = mgr.get()
+    actual = lookup.get()
     assert actual == proxy_var
 
 
 def test_iand(integers: Objects[int]) -> None:
-    actual, mgr, proxy_var = integers
+    actual, lookup, proxy_var = integers
 
     actual &= 1
-    mgr.set(actual)
+    lookup.set(actual)
     assert actual == proxy_var
 
     proxy_var &= 0
-    actual = mgr.get()
+    actual = lookup.get()
     assert actual == proxy_var
 
 
 def test_iconcat(strings: Objects[str]) -> None:
-    actual, mgr, proxy_var = strings
+    actual, lookup, proxy_var = strings
 
     actual += "a"
-    mgr.set(actual)
+    lookup.set(actual)
     assert actual == proxy_var
 
     proxy_var += "a"
-    actual = mgr.get()
+    actual = lookup.get()
     assert actual == proxy_var
 
 
 def test_ifloordiv(integers: Objects[int]) -> None:
-    actual, mgr, proxy_var = integers
+    actual, lookup, proxy_var = integers
 
     actual //= 1
-    mgr.set(actual)
+    lookup.set(actual)
     assert actual == proxy_var
 
     proxy_var //= 2
-    actual = mgr.get()
+    actual = lookup.get()
     assert actual == proxy_var
 
 
 def test_ilshift(integers: Objects[int]) -> None:
-    actual, mgr, proxy_var = integers
+    actual, lookup, proxy_var = integers
 
     actual <<= 1
-    mgr.set(actual)
+    lookup.set(actual)
     assert actual == proxy_var
 
     proxy_var <<= 1
-    actual = mgr.get()
+    actual = lookup.get()
     assert actual == proxy_var
 
 
 def test_imod(integers: Objects[int]) -> None:
-    actual, mgr, proxy_var = integers
+    actual, lookup, proxy_var = integers
 
     actual %= 1
-    mgr.set(actual)
+    lookup.set(actual)
     assert actual == proxy_var
 
     proxy_var %= 1
-    actual = mgr.get()
+    actual = lookup.get()
     assert actual == proxy_var
 
 
 def test_imul(integers: Objects[float]) -> None:
-    actual, mgr, proxy_var = integers
+    actual, lookup, proxy_var = integers
 
     actual *= 100
-    mgr.set(actual)
+    lookup.set(actual)
     assert actual == proxy_var
 
     proxy_var *= 0.6
-    actual = mgr.get()
+    actual = lookup.get()
     assert actual == proxy_var
 
 
@@ -234,38 +234,38 @@ def test_inv(integers: Objects[int]) -> None:
 
 
 def test_ior(integers: Objects[int]) -> None:
-    actual, mgr, proxy_var = integers
+    actual, lookup, proxy_var = integers
 
     actual |= 1
-    mgr.set(actual)
+    lookup.set(actual)
     assert actual == proxy_var
 
     proxy_var |= 128
-    actual = mgr.get()
+    actual = lookup.get()
     assert actual == proxy_var
 
 
 def test_ipow(integers: Objects[int]) -> None:
-    actual, mgr, proxy_var = integers
+    actual, lookup, proxy_var = integers
 
     actual **= 1
-    mgr.set(actual)
+    lookup.set(actual)
     assert actual == proxy_var
 
     proxy_var **= 1
-    actual = mgr.get()
+    actual = lookup.get()
     assert actual == proxy_var
 
 
 def test_irshift(integers: Objects[int]) -> None:
-    actual, mgr, proxy_var = integers
+    actual, lookup, proxy_var = integers
 
     actual >>= 1
-    mgr.set(actual)
+    lookup.set(actual)
     assert actual == proxy_var
 
     proxy_var >>= 1
-    actual = mgr.get()
+    actual = lookup.get()
     assert actual == proxy_var
 
 
@@ -282,38 +282,38 @@ def test_is_not(integers: Objects[int]) -> None:
 
 
 def test_isub(integers: Objects[int]) -> None:
-    actual, mgr, proxy_var = integers
+    actual, lookup, proxy_var = integers
 
     actual -= 1
-    mgr.set(actual)
+    lookup.set(actual)
     assert actual == proxy_var
 
     proxy_var += 1
-    actual = mgr.get()
+    actual = lookup.get()
     assert actual == proxy_var
 
 
 def test_itruediv(integers: Objects[float]) -> None:
-    actual, mgr, proxy_var = integers
+    actual, lookup, proxy_var = integers
 
     actual /= 1
-    mgr.set(actual)
+    lookup.set(actual)
     assert actual == proxy_var
 
     proxy_var /= 2
-    actual = mgr.get()
+    actual = lookup.get()
     assert actual == proxy_var
 
 
 def test_ixor(integers: Objects[int]) -> None:
-    actual, mgr, proxy_var = integers
+    actual, lookup, proxy_var = integers
 
     actual ^= 1
-    mgr.set(actual)
+    lookup.set(actual)
     assert actual == proxy_var
 
     proxy_var ^= 1
-    actual = mgr.get()
+    actual = lookup.get()
     assert actual == proxy_var
 
 
@@ -345,9 +345,9 @@ def test_lt(objects: Objects[int | float]) -> None:
 def test_matmul() -> None:
     np = pytest.importorskip("numpy")
     actual = np.array([[1, 2], [3, 4]])
-    mgr: ContextVar[Any] = ContextVar("matrix")
-    mgr.set(actual)
-    proxy_var = lookup_proxy(mgr)
+    lookup: ContextVar[Any] = ContextVar("matrix")
+    lookup.set(actual)
+    proxy_var = lookup_proxy(lookup)
     matrix = [[9, 10], [11, 12]]
     assert ((actual @ matrix) == (proxy_var @ matrix)).all()
 
@@ -355,16 +355,16 @@ def test_matmul() -> None:
 def test_imatmul() -> None:
     np = pytest.importorskip("numpy")
     actual = np.array([[1, 2], [3, 4]])
-    mgr: ContextVar[Any] = ContextVar("matrix")
-    mgr.set(actual)
-    proxy_var = lookup_proxy(mgr)
+    lookup: ContextVar[Any] = ContextVar("matrix")
+    lookup.set(actual)
+    proxy_var = lookup_proxy(lookup)
 
     actual @= [[5, 6], [7, 8]]
-    mgr.set(actual)
+    lookup.set(actual)
     assert (actual == proxy_var).all()
 
     proxy_var @= [[9, 10], [11, 12]]
-    actual = mgr.get()
+    actual = lookup.get()
     assert (actual == proxy_var).all()
 
 
@@ -449,28 +449,28 @@ def test_attrgetter() -> None:
             self.value = value
 
     actual = A(1)
-    mgr: ContextVar[A] = ContextVar("attrgetter")
-    mgr.set(actual)
-    proxy_var = lookup_proxy(mgr)
+    lookup: ContextVar[A] = ContextVar("attrgetter")
+    lookup.set(actual)
+    proxy_var = lookup_proxy(lookup)
 
     assert actual.value == proxy_var.value
 
 
 def test_delitem() -> None:
     actual = [1, 2, 3]
-    mgr: ContextVar[list[int]] = ContextVar("delitem")
-    mgr.set(actual)
-    proxy_var = lookup_proxy(mgr)
+    lookup: ContextVar[list[int]] = ContextVar("delitem")
+    lookup.set(actual)
+    proxy_var = lookup_proxy(lookup)
 
     del actual[0]
-    mgr.set(actual)
+    lookup.set(actual)
     assert actual == proxy_var
 
 
 def test_eq_object() -> None:
     actual = object()
-    mgr: ContextVar[object] = ContextVar("eq")
-    mgr.set(actual)
-    proxy_var = lookup_proxy(mgr)
+    lookup: ContextVar[object] = ContextVar("eq")
+    lookup.set(actual)
+    proxy_var = lookup_proxy(lookup)
 
     assert actual == proxy_var
