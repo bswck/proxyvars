@@ -4,8 +4,19 @@
 [![Tests](https://github.com/bswck/proxyvars/actions/workflows/test.yml/badge.svg)](https://github.com/bswck/proxyvars/actions/workflows/test.yml)
 [![Coverage](https://coverage-badge.samuelcolvin.workers.dev/bswck/proxyvars.svg)](https://coverage-badge.samuelcolvin.workers.dev/redirect/bswck/proxyvars)
 [![Documentation Status](https://readthedocs.org/projects/proxyvars/badge/?version=latest)](https://proxyvars.readthedocs.io/en/latest/?badge=latest)
+[![Lifted?](https://tidelift.com/badges/package/pypi/proxyvars)](https://tidelift.com/subscription/pkg/pypi-proxyvars?utm_source=pypi-proxyvars&utm_medium=readme)
 
 Callback-based object proxies in Python.
+
+
+# For Enterprise
+
+| [![Tidelift](https://nedbatchelder.com/pix/Tidelift_Logo_small.png)](https://tidelift.com/subscription/pkg/pypi-proxyvars?utm_source=pypi-proxyvarsutm_medium=referral&utm_campaign=readme) | [Available as part of the Tidelift Subscription.](https://tidelift.com/subscription/pkg/pypi-proxyvars?utm_source=pypi-proxyvars&&utm_medium=referral&utm_campaign=readme)<br>This project and the maintainers of thousands of other packages are working with Tidelift to deliver one enterprise subscription that covers all of the open source you use. [Learn more here](https://tidelift.com/subscription/pkg/pypi-proxyvars?utm_source=pypi-proxyvars&utm_medium=referral&utm_campaign=readthedocs). |
+| - | - |
+
+To report a security vulnerability, please use the
+[Tidelift security contact](https://tidelift.com/security).<br>
+Tidelift will coordinate the fix and disclosure.
 
 # Installation
 You might simply install it with pip:

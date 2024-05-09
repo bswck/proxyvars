@@ -5,7 +5,7 @@ cli: false
 copyright: Bartosz Sławecki
 description: Callback-based object proxies in Python.
 docs: true
-email: bswck.dev@gmail.com
+email: bartoszpiotrslawecki@gmail.com
 github: bswck
 license: MIT
 package: proxyvars
@@ -15,10 +15,10 @@ pypi_description: Callback-based object proxies in Python.
 pypi_project: proxyvars
 pypy: true
 python: '3.8'
-python_until: '3.13'
+python_until: ''
 repo: proxyvars
 rtd: proxyvars
 tests: true
-tidelift: false
+tidelift: true
 visibility: public
 wip: false
