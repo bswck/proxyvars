@@ -109,7 +109,7 @@ print(my_iq)  # 200
 my_iq -= 60
 
 print(my_iq_var.get())  # 140
-print(my_iq)  # 60
+print(my_iq)  # 140
 ```
 
 This way, we got a mutable immutable. Or, more correctly, we got a proxy object
